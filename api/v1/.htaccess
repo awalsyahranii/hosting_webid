@@ -1,0 +1,18 @@
+# .htaccess - API Directory
+
+RewriteEngine On
+
+# Hapus ekstensi .php untuk file di folder api dan subfoldernya
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.*?)/?$ $1.php [L]
+
+
+# Cegah akses langsung ke file tertentu
+<FilesMatch "^(config|database|controller|models|service)\.php$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Cegah directory listing
+Options -Indexes

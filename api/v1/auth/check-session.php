@@ -3,9 +3,16 @@
 
 header('Content-Type: application/json');
 
-header(
-    'Access-Control-Allow-Origin: http://localhost:3000'
-);
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowed_origins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000'
+];
+if (in_array($origin, $allowed_origins)) {
+    header("Access-Control-Allow-Origin: $origin");
+} else {
+    header("Access-Control-Allow-Origin: http://localhost:3000");
+}
 
 header(
     'Access-Control-Allow-Credentials: true'

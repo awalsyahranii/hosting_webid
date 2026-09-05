@@ -15,6 +15,19 @@ class PaymentController
         $this->orderModel = new Order();
     }
 
+    public function requestConfirmation($userId, $paymentId)
+    {
+        if (empty($userId) || empty($paymentId) || !is_numeric($paymentId)) {
+            return ['status' => 'error', 'code' => 400, 'message' => 'ID payment tidak valid'];
+        }
+
+        if (!$this->paymentModel->requestConfirmation($userId, $paymentId)) {
+            return ['status' => 'error', 'code' => 404, 'message' => 'Payment pending tidak ditemukan'];
+        }
+
+        return ['status' => 'success', 'code' => 200, 'message' => 'Konfirmasi pembayaran dicatat'];
+    }
+
     /**
      * =====================================================
      * CREATE PAYMENT

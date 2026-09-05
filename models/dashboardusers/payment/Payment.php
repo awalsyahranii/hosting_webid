@@ -230,4 +230,16 @@ class Payment
             PDO::FETCH_ASSOC
         );
     }
+
+    public function requestConfirmation($userId, $paymentId)
+    {
+        $stmt = $this->db->prepare("\n            UPDATE payments p\n            INNER JOIN orders o ON o.id = p.order_id\n            SET p.confirmation_requested_at = NOW()\n            WHERE p.id = :payment_id\n              AND o.user_id = :user_id\n              AND p.status = 'pending'\n        ");
+
+        $stmt->execute([
+            ':payment_id' => (int) $paymentId,
+            ':user_id' => (int) $userId
+        ]);
+
+        return $stmt->rowCount() > 0;
+    }
 }

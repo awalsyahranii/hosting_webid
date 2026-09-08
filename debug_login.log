@@ -334,3 +334,223 @@
 [2026-09-05 09:58:44] Raw JSON input | Data: {"raw":"{\"identifier\":\"admin@example.com\",\"password\":\"Admin123!\"}"}
 [2026-09-05 09:58:44] Parsed credentials | Data: {"identifier":"admin@example.com","password_provided":"yes"}
 [2026-09-05 09:58:44] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":1,"username":"admin1","email":"admin@example.com","role":"admin","created_at":"2026-08-16 20:01:29","updated_at":"2026-08-26 16:39:14"},"role":"admin"}}
+[2026-09-05 11:21:50] Login API requested | Data: {"method":"POST","origin":"","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:21:50] Raw JSON input | Data: {"raw":"{\r\n    \"identifier\": \"testuser@example.com\",\r\n    \"password\": \"passwordbaru123\"\r\n}"}
+[2026-09-05 11:21:50] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 11:21:50] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 11:21:58] Login API requested | Data: {"method":"POST","origin":"","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:21:58] Raw JSON input | Data: {"raw":"{\r\n  \"identifier\": \"admin@example.com\",\r\n  \"password\": \"Admin123!\"\r\n}"}
+[2026-09-05 11:21:58] Parsed credentials | Data: {"identifier":"admin@example.com","password_provided":"yes"}
+[2026-09-05 11:21:58] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":1,"username":"admin1","email":"admin@example.com","role":"admin","created_at":"2026-08-16 20:01:29","updated_at":"2026-08-26 16:39:14"},"role":"admin"}}
+[2026-09-05 11:27:19] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:27:19] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:27:19] Raw JSON input | Data: {"raw":"{\"identifier\":\" admin@example.com\",\"password\":\" Admin123!\"}"}
+[2026-09-05 11:27:19] Parsed credentials | Data: {"identifier":" admin@example.com","password_provided":"yes"}
+[2026-09-05 11:27:19] Login result | Data: {"status":"error","code":401,"message":"Username\/Email tidak ditemukan"}
+[2026-09-05 11:27:26] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:27:26] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:27:26] Raw JSON input | Data: {"raw":"{\"identifier\":\" admin@example.com\",\"password\":\" Admin123!\"}"}
+[2026-09-05 11:27:26] Parsed credentials | Data: {"identifier":" admin@example.com","password_provided":"yes"}
+[2026-09-05 11:27:26] Login result | Data: {"status":"error","code":401,"message":"Username\/Email tidak ditemukan"}
+[2026-09-05 11:27:27] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:27:27] Raw JSON input | Data: {"raw":"{\"identifier\":\" admin@example.com\",\"password\":\" Admin123!\"}"}
+[2026-09-05 11:27:27] Parsed credentials | Data: {"identifier":" admin@example.com","password_provided":"yes"}
+[2026-09-05 11:27:27] Login result | Data: {"status":"error","code":401,"message":"Username\/Email tidak ditemukan"}
+[2026-09-05 11:27:43] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:27:43] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:27:43] Raw JSON input | Data: {"raw":"{\"identifier\":\"admin@example.com\",\"password\":\"Admin123!\"}"}
+[2026-09-05 11:27:43] Parsed credentials | Data: {"identifier":"admin@example.com","password_provided":"yes"}
+[2026-09-05 11:27:43] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":1,"username":"admin1","email":"admin@example.com","role":"admin","created_at":"2026-08-16 20:01:29","updated_at":"2026-08-26 16:39:14"},"role":"admin"}}
+[2026-09-05 11:29:48] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:29:48] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:29:48] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 11:29:48] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 11:29:49] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 11:30:54] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:30:54] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:30:54] Raw JSON input | Data: {"raw":"{\"identifier\":\"admin@example.com\",\"password\":\"Admin123!\"}"}
+[2026-09-05 11:30:54] Parsed credentials | Data: {"identifier":"admin@example.com","password_provided":"yes"}
+[2026-09-05 11:30:55] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":1,"username":"admin1","email":"admin@example.com","role":"admin","created_at":"2026-08-16 20:01:29","updated_at":"2026-08-26 16:39:14"},"role":"admin"}}
+[2026-09-05 11:39:31] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:39:31] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:39:31] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 11:39:31] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 11:39:31] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 11:40:20] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:40:20] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:40:20] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 11:40:20] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 11:40:20] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 11:40:42] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:40:42] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:40:42] Raw JSON input | Data: {"raw":"{\"identifier\":\"admin@example.com\",\"password\":\"Admin123!\"}"}
+[2026-09-05 11:40:42] Parsed credentials | Data: {"identifier":"admin@example.com","password_provided":"yes"}
+[2026-09-05 11:40:43] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":1,"username":"admin1","email":"admin@example.com","role":"admin","created_at":"2026-08-16 20:01:29","updated_at":"2026-08-26 16:39:14"},"role":"admin"}}
+[2026-09-05 11:41:56] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:41:56] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:41:56] Raw JSON input | Data: {"raw":"{\"identifier\":\"admin@example.com\",\"password\":\"Admin123!\"}"}
+[2026-09-05 11:41:56] Parsed credentials | Data: {"identifier":"admin@example.com","password_provided":"yes"}
+[2026-09-05 11:41:57] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":1,"username":"admin1","email":"admin@example.com","role":"admin","created_at":"2026-08-16 20:01:29","updated_at":"2026-08-26 16:39:14"},"role":"admin"}}
+[2026-09-05 11:42:02] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:42:02] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:42:02] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 11:42:02] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 11:42:02] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 11:43:03] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:43:03] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:43:03] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 11:43:03] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 11:43:03] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 11:44:06] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:44:06] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:44:06] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 11:44:06] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 11:44:06] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 11:45:56] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:45:56] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:45:56] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 11:45:56] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 11:45:56] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 11:49:20] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:49:20] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:49:20] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 11:49:20] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 11:49:20] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 11:50:00] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:50:00] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:50:00] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 11:50:00] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 11:50:00] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 11:51:59] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:51:59] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 11:51:59] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 11:51:59] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 11:51:59] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:04:03] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:04:03] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:04:03] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 12:04:03] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 12:04:03] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:05:05] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:05:05] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:05:05] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 12:05:05] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 12:05:05] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:05:13] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:05:13] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:05:13] Raw JSON input | Data: {"raw":"{\"identifier\":\"admin@example.com\",\"password\":\"Admin123!\"}"}
+[2026-09-05 12:05:13] Parsed credentials | Data: {"identifier":"admin@example.com","password_provided":"yes"}
+[2026-09-05 12:05:14] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":1,"username":"admin1","email":"admin@example.com","role":"admin","created_at":"2026-08-16 20:01:29","updated_at":"2026-08-26 16:39:14"},"role":"admin"}}
+[2026-09-05 12:05:42] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:05:42] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:05:42] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 12:05:42] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 12:05:42] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:06:19] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:06:19] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:06:19] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 12:06:19] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 12:06:20] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:15:02] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:15:02] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:15:02] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 12:15:02] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 12:15:03] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:15:45] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:15:45] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:15:45] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 12:15:45] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 12:15:45] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:17:36] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:17:36] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:17:36] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 12:17:36] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 12:17:36] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:18:34] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:18:34] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:18:34] Raw JSON input | Data: {"raw":"{\"identifier\":\"admin@example.com\",\"password\":\"Admin123!\"}"}
+[2026-09-05 12:18:34] Parsed credentials | Data: {"identifier":"admin@example.com","password_provided":"yes"}
+[2026-09-05 12:18:35] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":1,"username":"admin1","email":"admin@example.com","role":"admin","created_at":"2026-08-16 20:01:29","updated_at":"2026-08-26 16:39:14"},"role":"admin"}}
+[2026-09-05 12:19:59] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:19:59] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:19:59] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 12:19:59] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 12:19:59] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:20:16] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:20:16] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:20:16] Raw JSON input | Data: {"raw":"{\"identifier\":\"admin@example.com\",\"password\":\"Admin123!\"}"}
+[2026-09-05 12:20:16] Parsed credentials | Data: {"identifier":"admin@example.com","password_provided":"yes"}
+[2026-09-05 12:20:17] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":1,"username":"admin1","email":"admin@example.com","role":"admin","created_at":"2026-08-16 20:01:29","updated_at":"2026-08-26 16:39:14"},"role":"admin"}}
+[2026-09-05 12:20:37] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:20:37] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:20:37] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 12:20:37] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 12:20:37] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:26:33] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:26:33] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:26:33] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 12:26:33] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 12:26:33] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:27:55] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:27:55] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:27:55] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 12:27:55] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 12:27:55] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:30:32] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:30:32] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:30:32] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 12:30:32] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 12:30:32] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:31:26] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:31:26] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:31:26] Raw JSON input | Data: {"raw":"{\"identifier\":\" admin@example.com\",\"password\":\"Admin123!\"}"}
+[2026-09-05 12:31:26] Parsed credentials | Data: {"identifier":" admin@example.com","password_provided":"yes"}
+[2026-09-05 12:31:26] Login result | Data: {"status":"error","code":401,"message":"Username\/Email tidak ditemukan"}
+[2026-09-05 12:31:29] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:31:29] Raw JSON input | Data: {"raw":"{\"identifier\":\" admin@example.com\",\"password\":\"Admin123!\"}"}
+[2026-09-05 12:31:29] Parsed credentials | Data: {"identifier":" admin@example.com","password_provided":"yes"}
+[2026-09-05 12:31:29] Login result | Data: {"status":"error","code":401,"message":"Username\/Email tidak ditemukan"}
+[2026-09-05 12:31:30] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:31:30] Raw JSON input | Data: {"raw":"{\"identifier\":\" admin@example.com\",\"password\":\"Admin123!\"}"}
+[2026-09-05 12:31:30] Parsed credentials | Data: {"identifier":" admin@example.com","password_provided":"yes"}
+[2026-09-05 12:31:30] Login result | Data: {"status":"error","code":401,"message":"Username\/Email tidak ditemukan"}
+[2026-09-05 12:31:30] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:31:30] Raw JSON input | Data: {"raw":"{\"identifier\":\" admin@example.com\",\"password\":\"Admin123!\"}"}
+[2026-09-05 12:31:30] Parsed credentials | Data: {"identifier":" admin@example.com","password_provided":"yes"}
+[2026-09-05 12:31:30] Login result | Data: {"status":"error","code":401,"message":"Username\/Email tidak ditemukan"}
+[2026-09-05 12:31:30] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:31:30] Raw JSON input | Data: {"raw":"{\"identifier\":\" admin@example.com\",\"password\":\"Admin123!\"}"}
+[2026-09-05 12:31:30] Parsed credentials | Data: {"identifier":" admin@example.com","password_provided":"yes"}
+[2026-09-05 12:31:30] Login result | Data: {"status":"error","code":401,"message":"Username\/Email tidak ditemukan"}
+[2026-09-05 12:31:32] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:31:32] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:31:32] Raw JSON input | Data: {"raw":"{\"identifier\":\" admin@example.com\",\"password\":\"Admin123!\"}"}
+[2026-09-05 12:31:32] Parsed credentials | Data: {"identifier":" admin@example.com","password_provided":"yes"}
+[2026-09-05 12:31:32] Login result | Data: {"status":"error","code":401,"message":"Username\/Email tidak ditemukan"}
+[2026-09-05 12:32:22] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:32:22] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:32:22] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 12:32:22] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 12:32:23] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:35:26] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:35:26] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:35:26] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-09-05 12:35:26] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-05 12:35:26] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-05 12:36:50] Login API requested | Data: {"method":"OPTIONS","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:36:50] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-05 12:36:50] Raw JSON input | Data: {"raw":"{\"identifier\":\"admin@example.com\",\"password\":\"Admin123!\"}"}
+[2026-09-05 12:36:50] Parsed credentials | Data: {"identifier":"admin@example.com","password_provided":"yes"}
+[2026-09-05 12:36:51] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":1,"username":"admin1","email":"admin@example.com","role":"admin","created_at":"2026-08-16 20:01:29","updated_at":"2026-08-26 16:39:14"},"role":"admin"}}
+[2026-09-07 13:28:10] Login API requested | Data: {"method":"POST","origin":"","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-07 13:28:10] Raw JSON input | Data: {"raw":"{\r\n  \"identifier\": \"admin@example.com\",\r\n  \"password\": \"Admin123!\"\r\n}"}
+[2026-09-07 13:28:10] Parsed credentials | Data: {"identifier":"admin@example.com","password_provided":"yes"}
+[2026-09-07 13:28:11] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":1,"username":"admin1","email":"admin@example.com","role":"admin","created_at":"2026-08-16 20:01:29","updated_at":"2026-08-26 16:39:14"},"role":"admin"}}
+[2026-09-07 16:01:29] Login API requested | Data: {"method":"POST","origin":"","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-07 16:01:29] Raw JSON input | Data: {"raw":"{\r\n  \"identifier\": \"admin@example.com\",\r\n  \"password\": \"Admin123!\"\r\n}"}
+[2026-09-07 16:01:29] Parsed credentials | Data: {"identifier":"admin@example.com","password_provided":"yes"}
+[2026-09-07 16:01:29] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":1,"username":"admin1","email":"admin@example.com","role":"admin","created_at":"2026-08-16 20:01:29","updated_at":"2026-08-26 16:39:14"},"role":"admin"}}
+[2026-09-07 16:01:34] Login API requested | Data: {"method":"POST","origin":"","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-07 16:01:34] Raw JSON input | Data: {"raw":"{\r\n    \"identifier\": \"testuser@example.com\",\r\n    \"password\": \"passwordbaru123\"\r\n}"}
+[2026-09-07 16:01:34] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-09-07 16:01:34] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}

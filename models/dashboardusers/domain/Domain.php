@@ -79,4 +79,29 @@ public function findById($id)
 
     return $stmt->fetch();
 }
+
+/**
+ * Ambil semua ekstensi domain unik beserta harga
+ */
+public function getAllExtensionsWithPrices()
+{
+    $stmt = $this->db->prepare("
+        SELECT
+            id,
+            domain_name,
+            extension,
+            price,
+            promo_price,
+            status
+        FROM domains
+        WHERE status = 'active'
+        ORDER BY
+            FIELD(extension, '.com', '.id', '.co.id', '.net', '.org', '.xyz', '.info', '.online', '.cloud', '.site', '.store', '.tech', '.dev', '.io') ASC,
+            id ASC
+    ");
+
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
 }

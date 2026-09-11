@@ -197,15 +197,23 @@ const faqs = [
 type DomainCheckResponse = {
   status: string;
   code: number;
-  available: boolean;
   message: string;
 
   data?: {
-    id?: number;
-    domain?: string;
-    extension?: string;
-    price?: string | number;
+    query?: string;
+    total?: number;
+    results?: DomainResult[];
   };
+};
+
+type DomainResult = {
+  domain: string;
+  extension?: string;
+  available: boolean | null;
+  price?: number | string | null;
+  promo_price?: number | string | null;
+  message?: string;
+  provider_message?: string;
 };
 
 export default function Home() {
@@ -218,14 +226,7 @@ const [domainExtension, setDomainExtension] =
 const [domainLoading, setDomainLoading] =
   useState(false);
 
-const [domainResult, setDomainResult] = useState<{
-  id?: number;
-  domain: string;
-  extension?: string;
-  available: boolean;
-  price?: number;
-  message: string;
-} | null>(null);
+const [domainResults, setDomainResults] = useState<DomainResult[]>([]);
 
 const [domainError, setDomainError] =
   useState("");
@@ -248,20 +249,17 @@ const [domainError, setDomainError] =
       setDomainError(
         "Silakan masukkan nama domain terlebih dahulu."
       );
-      setDomainResult(null);
+      setDomainResults([]);
       return;
     }
 
-    const finalDomain =
-      `${cleanDomain}${domainExtension}`;
-
     setDomainLoading(true);
     setDomainError("");
-    setDomainResult(null);
+    setDomainResults([]);
 
     try {
       const response = await fetch(
-        "http://localhost/hosting_webid/api/v1/domain/check.php",
+        "http://localhost/hosting_webid/api/v1/domain/batch_check.php",
         {
           method: "POST",
 
@@ -271,7 +269,7 @@ const [domainError, setDomainError] =
           },
 
           body: JSON.stringify({
-            domain: finalDomain,
+            domain: cleanDomain,
           }),
         }
       );
@@ -289,31 +287,16 @@ const [domainError, setDomainError] =
         return;
       }
 
-      setDomainResult({
-        domain:
-          result.data?.domain ||
-          finalDomain,
+      const results = Array.isArray(result.data?.results)
+        ? result.data.results
+        : [];
 
-        extension:
-          result.data?.extension ||
-          domainExtension,
+      if (results.length === 0) {
+        setDomainError("Tidak ada ekstensi domain yang dapat ditampilkan.");
+        return;
+      }
 
-        available:
-          result.available === true,
-
-        price:
-          result.data?.price
-            ? Number(result.data.price)
-            : undefined,
-
-        message:
-          result.message ||
-          (
-            result.available === true
-              ? "Domain tersedia."
-              : "Domain tidak tersedia."
-          ),
-      });
+      setDomainResults(results);
 
     } catch (error) {
       setDomainError(
@@ -884,7 +867,7 @@ const [domainError, setDomainError] =
                       onChange={(e) => {
                         setDomain(e.target.value);
 
-                        setDomainResult(null);
+                        setDomainResults([]);
                         setDomainError("");
                       }}
                       onKeyDown={(e) => {
@@ -905,7 +888,7 @@ const [domainError, setDomainError] =
                           e.target.value
                         );
 
-                        setDomainResult(null);
+                        setDomainResults([]);
                         setDomainError("");
                       }}
                       disabled={domainLoading}
@@ -915,7 +898,7 @@ const [domainError, setDomainError] =
                         .com
                       </option>
 
-            romantiablocks to project gammatic arching follow this evening so far as the news making focused I need to be upon you for other greetings repular structures          <option value=".id">
+                      <option value=".id">
                         .id
                       </option>
 
@@ -1021,85 +1004,78 @@ const [domainError, setDomainError] =
                     DOMAIN RESULT
                 ================================================= */}
 
-                {domainResult &&
+                {domainResults.length > 0 &&
                   !domainLoading &&
                   !domainError && (
 
-                    <div
-                      className={`domain-result ${
-                        domainResult.available
-                          ? "domain-available"
-                          : "domain-unavailable"
-                      }`}
-                    >
+                    <div className="domain-results">
+                      {domainResults.map((result) => {
+                        const hasPromo = result.promo_price !== null &&
+                          result.promo_price !== undefined &&
+                          result.price !== null &&
+                          result.price !== undefined &&
+                          Number(result.promo_price) < Number(result.price);
+                        const displayPrice = hasPromo
+                          ? result.promo_price
+                          : result.price;
+                        const isAvailable = result.available === true;
 
-                      <div className="domain-result-icon">
-
-                        {domainResult.available
-                          ? "✓"
-                          : "×"}
-
-                      </div>
-
-
-                      <div className="domain-result-content">
-
-                        <strong>
-
-                          {domainResult.available
-                            ? "Domain tersedia"
-                            : "Domain tidak tersedia"}
-
-                        </strong>
-
-
-                        <span>
-                          {domainResult.domain}
-                        </span>
-
-
-                        <small>
-                          {domainResult.message}
-                        </small>
-
-
-                        {/* =================================================
-                            PRICE
-                        ================================================= */}
-
-                        {domainResult.available &&
-                          domainResult.price !== null &&
-                          domainResult.price !== undefined && (
-
-                            <div className="domain-price">
-
-                              Rp{" "}
-
-                              {Number(
-                                domainResult.price
-                              ).toLocaleString(
-                                "id-ID"
-                              )}
-
-                              <span>
-                                / tahun
-                              </span>
-
+                        return (
+                          <div
+                            className={`domain-result ${
+                              isAvailable
+                                ? "domain-available"
+                                : "domain-unavailable"
+                            }`}
+                            key={result.domain}
+                          >
+                            <div className="domain-result-icon">
+                              {isAvailable ? "✓" : "×"}
                             </div>
 
-                          )}
+                            <div className="domain-result-content">
+                              <strong>
+                                {isAvailable
+                                  ? "Domain tersedia"
+                                  : result.available === false
+                                    ? "Domain tidak tersedia"
+                                    : "Status domain tidak diketahui"}
+                              </strong>
 
-                        {domainResult.available && (
-                          <Link
-                            href={`/register?domain=${encodeURIComponent(domainResult.domain)}`}
-                            className="domain-register-button"
-                          >
-                            Daftar Sekarang
-                          </Link>
-                        )}
+                              <span>{result.domain}</span>
 
-                      </div>
+                              <small>
+                                {result.provider_message ||
+                                  (isAvailable
+                                    ? "Domain tersedia"
+                                    : "Domain tidak tersedia")}
+                              </small>
 
+                              {displayPrice !== null &&
+                                displayPrice !== undefined && (
+                                  <div className="domain-price">
+                                    {hasPromo && (
+                                      <del>
+                                        Rp {Number(result.price).toLocaleString("id-ID")}
+                                      </del>
+                                    )}
+                                    Rp {Number(displayPrice).toLocaleString("id-ID")}
+                                    <span>/ tahun</span>
+                                  </div>
+                                )}
+
+                              {isAvailable && (
+                                <Link
+                                  href={`/register?domain=${encodeURIComponent(result.domain)}`}
+                                  className="domain-register-button"
+                                >
+                                  Beli
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
 
                   )}

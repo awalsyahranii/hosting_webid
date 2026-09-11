@@ -9,30 +9,11 @@ class Payment
 
     public function __construct()
     {
-        $this->db =
-            Database::getInstance()
-                ->getConnection();
+        $this->db = Database::getInstance()->getConnection();
     }
 
-
-    /**
-     * =====================================================
-     * CREATE PAYMENT
-     *
-     * Payment dibuat berdasarkan order.
-     *
-     * Invoice BELUM dibuat pada tahap ini.
-     * Karena itu invoice_id = NULL.
-     *
-     * Status awal = pending
-     * =====================================================
-     */
-    public function createPayment(
-        $orderId,
-        $paymentNumber,
-        $amount,
-        $paymentMethod
-    ) {
+    public function createPayment($orderId, $paymentNumber, $amount, $paymentMethod)
+    {
         $stmt = $this->db->prepare("
             INSERT INTO payments (
                 order_id,
@@ -59,26 +40,13 @@ class Payment
         ");
 
         return $stmt->execute([
-            ':order_id' =>
-                (int) $orderId,
-
-            ':payment_number' =>
-                $paymentNumber,
-
-            ':amount' =>
-                $amount,
-
-            ':payment_method' =>
-                $paymentMethod
+            ':order_id' => (int) $orderId,
+            ':payment_number' => $paymentNumber,
+            ':amount' => $amount,
+            ':payment_method' => $paymentMethod
         ]);
     }
 
-
-    /**
-     * =====================================================
-     * FIND PAYMENT BY ID
-     * =====================================================
-     */
     public function findById($paymentId)
     {
         $stmt = $this->db->prepare("
@@ -98,25 +66,12 @@ class Payment
             LIMIT 1
         ");
 
-        $stmt->execute([
-            ':id' =>
-                (int) $paymentId
-        ]);
-
-        return $stmt->fetch(
-            PDO::FETCH_ASSOC
-        );
+        $stmt->execute([':id' => (int) $paymentId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-
-    /**
-     * =====================================================
-     * FIND PAYMENT BY PAYMENT NUMBER
-     * =====================================================
-     */
-    public function findByPaymentNumber(
-        $paymentNumber
-    ) {
+    public function findByPaymentNumber($paymentNumber)
+    {
         $stmt = $this->db->prepare("
             SELECT
                 id,
@@ -134,28 +89,12 @@ class Payment
             LIMIT 1
         ");
 
-        $stmt->execute([
-            ':payment_number' =>
-                $paymentNumber
-        ]);
-
-        return $stmt->fetch(
-            PDO::FETCH_ASSOC
-        );
+        $stmt->execute([':payment_number' => $paymentNumber]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-
-    /**
-     * =====================================================
-     * FIND PAYMENT PENDING BY ORDER
-     *
-     * Mencegah user membuat payment pending
-     * lebih dari satu untuk order yang sama.
-     * =====================================================
-     */
-    public function findPendingByOrderId(
-        $orderId
-    ) {
+    public function findPendingByOrderId($orderId)
+    {
         $stmt = $this->db->prepare("
             SELECT
                 id,
@@ -175,25 +114,12 @@ class Payment
             LIMIT 1
         ");
 
-        $stmt->execute([
-            ':order_id' =>
-                (int) $orderId
-        ]);
-
-        return $stmt->fetch(
-            PDO::FETCH_ASSOC
-        );
+        $stmt->execute([':order_id' => (int) $orderId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-
-    /**
-     * =====================================================
-     * GET ALL PAYMENT MILIK USER
-     * =====================================================
-     */
-    public function getAllByUser(
-        $userId
-    ) {
+    public function getAllByUser($userId)
+    {
         $stmt = $this->db->prepare("
             SELECT
                 payments.id,
@@ -206,39 +132,42 @@ class Payment
                 payments.paid_at,
                 payments.created_at,
                 payments.updated_at,
-
                 orders.order_number
-
             FROM payments
-
-            INNER JOIN orders
-                ON orders.id =
-                   payments.order_id
-
-            WHERE orders.user_id =
-                  :user_id
-
+            INNER JOIN orders ON orders.id = payments.order_id
+            WHERE orders.user_id = :user_id
             ORDER BY payments.id DESC
         ");
 
-        $stmt->execute([
-            ':user_id' =>
-                (int) $userId
-        ]);
-
-        return $stmt->fetchAll(
-            PDO::FETCH_ASSOC
-        );
+        $stmt->execute([':user_id' => (int) $userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function requestConfirmation($userId, $paymentId)
+    public function requestConfirmation($userId, $paymentId = null, $orderId = null, $paymentNumber = null)
     {
-        $stmt = $this->db->prepare("\n            UPDATE payments p\n            INNER JOIN orders o ON o.id = p.order_id\n            SET p.confirmation_requested_at = NOW()\n            WHERE p.id = :payment_id\n              AND o.user_id = :user_id\n              AND p.status = 'pending'\n        ");
+        $where = ["o.user_id = :user_id", "p.status = 'pending'"];
+        $params = [':user_id' => (int) $userId];
 
-        $stmt->execute([
-            ':payment_id' => (int) $paymentId,
-            ':user_id' => (int) $userId
-        ]);
+        if (!empty($paymentId) && is_numeric($paymentId)) {
+            $where[] = "p.id = :payment_id";
+            $params[':payment_id'] = (int) $paymentId;
+        } elseif (!empty($paymentNumber)) {
+            $where[] = "p.payment_number = :payment_number";
+            $params[':payment_number'] = trim($paymentNumber);
+        } elseif (!empty($orderId) && is_numeric($orderId)) {
+            $where[] = "p.order_id = :order_id";
+            $params[':order_id'] = (int) $orderId;
+        } else {
+            return false;
+        }
+
+        $sql = "UPDATE payments p
+                INNER JOIN orders o ON o.id = p.order_id
+                SET p.confirmation_requested_at = NOW(), p.updated_at = NOW()
+                WHERE " . implode(" AND ", $where);
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
 
         return $stmt->rowCount() > 0;
     }

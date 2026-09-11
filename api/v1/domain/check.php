@@ -76,12 +76,26 @@ $domain =
         )
     );
 
+$extension =
+    trim(
+        (string) (
+            $input['extension'] ?? ''
+        )
+    );
+
+$includeSuggestions =
+    isset($input['include_suggestions'])
+        ? (bool) $input['include_suggestions']
+        : true;
+
 $domainController =
     new DomainController();
 
 $result =
     $domainController->checkDomain(
-        $domain
+        $domain,
+        $extension,
+        $includeSuggestions
     );
 
 http_response_code(

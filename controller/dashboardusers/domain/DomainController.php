@@ -36,882 +36,508 @@ class DomainController
         );
     }
 
+    /**
+     * Normalisasi dan parsing domain input (misal: "https://namaku", "namaku.com", "namaku")
+     */
+    public function normalizeDomainInput(string $input, string $defaultExt = '.com'): ?array
+    {
+        $input = strtolower(trim($input));
+        $input = preg_replace('~^https?://~i', '', $input);
+        $input = preg_replace('~^www.~i', '', $input);
+        $input = preg_replace('~[/?#].*$~', '', $input);
+        $input = trim($input, "/. \t\n\r\0\x0B");
+
+        if ($input === '') {
+            return null;
+        }
+
+        // Multi-part extensions
+        $multiPartRegex = '/\.(co\.id|it\.com|my\.id|biz\.id|web\.id|or\.id|ac\.id|sch\.id|go\.id|net\.id|mil\.id)$/i';
+        // Single part extensions
+        $singlePartRegex = '/\.([a-z0-9-]{2,63})$/i';
+
+        $extension = '';
+        $baseName = $input;
+
+        if (preg_match($multiPartRegex, $input, $m)) {
+            $extension = '.' . strtolower($m[1]);
+            $baseName = substr($input, 0, -strlen($extension));
+        } elseif (preg_match($singlePartRegex, $input, $m)) {
+            $extension = '.' . strtolower($m[1]);
+            $baseName = substr($input, 0, -strlen($extension));
+        } else {
+            $defaultExt = strtolower(trim($defaultExt));
+            if ($defaultExt !== '' && $defaultExt[0] !== '.') {
+                $defaultExt = '.' . $defaultExt;
+            }
+            $extension = $defaultExt ?: '.com';
+        }
+
+        $baseName = preg_replace('/[^a-z0-9-]/i', '', $baseName);
+        $baseName = trim($baseName, '-');
+
+        if ($baseName === '' || strlen($baseName) > 63) {
+            return null;
+        }
+
+        return [
+            'base_name'   => $baseName,
+            'extension'   => $extension,
+            'full_domain' => $baseName . $extension,
+        ];
+    }
+
+    /**
+     * Helper Fallback: Pengecekan Ketersediaan Domain via DNS over HTTPS (Google / Cloudflare)
+     */
+    public function checkDomainViaDnsOrDoH(string $domain): bool
+    {
+        $domain = strtolower(trim($domain));
+        
+        // 1. Coba DNS over HTTPS (Google DoH - super fast & bypass local DNS limitations)
+        if (function_exists('curl_init')) {
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => "https://dns.google/resolve?name=" . urlencode($domain) . "&type=A",
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 2,
+                CURLOPT_TIMEOUT => 3,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_USERAGENT => 'HostingWebID-DomainAvailability/1.0',
+            ]);
+            $response = curl_exec($ch);
+            $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($response !== false && $httpCode === 200) {
+                $json = json_decode($response, true);
+                if (is_array($json)) {
+                    $status = (int) ($json['Status'] ?? 0);
+                    $hasAnswer = !empty($json['Answer']) && is_array($json['Answer']) && count($json['Answer']) > 0;
+                    
+                    // Status 0 dengan Answer = Domain sudah terdaftar dan aktif
+                    if ($status === 0 && $hasAnswer) {
+                        return false;
+                    }
+                    // Status 3 = NXDOMAIN (Domain belum ada / tersedia)
+                    if ($status === 3 || (!$hasAnswer && empty($json['Authority']))) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // 2. Fallback ke checkdnsrr bawaan PHP
+        if (function_exists('checkdnsrr')) {
+            $hasDns = @checkdnsrr($domain, 'ANY') || 
+                      @checkdnsrr($domain, 'A') || 
+                      @checkdnsrr($domain, 'NS') || 
+                      @checkdnsrr($domain, 'MX') || 
+                      @checkdnsrr($domain, 'SOA');
+            if ($hasDns) {
+                return false;
+            }
+        }
+
+        // 3. Fallback gethostbyname
+        $ip = @gethostbyname($domain);
+        if ($ip !== $domain && !empty($ip)) {
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * ============================================================
-     * CHECK DOMAIN
+     * CHECK DOMAIN (Single + Multi TLD Suggestions like idwebhost)
      * ============================================================
-     *
-     * Mengecek availability domain melalui API SRS-X.
-     *
-     * Dokumentasi SRS-X:
-     *
-     * username = API username
-     * password = SHA-256 dari password API
-     * domain   = nama domain
      */
-    public function checkDomain($domainName): array
+    public function checkDomain($domainName, $defaultExt = '.com', bool $includeSuggestions = true): array
     {
-        /*
-         * --------------------------------------------------------
-         * VALIDASI INPUT
-         * --------------------------------------------------------
-         */
-
         if (empty($domainName)) {
             return [
-                'status' => 'error',
-                'code' => 400,
+                'status'  => 'error',
+                'code'    => 400,
                 'message' => 'Nama domain wajib diisi'
             ];
         }
 
-
-        /*
-         * --------------------------------------------------------
-         * BERSIHKAN DOMAIN
-         * --------------------------------------------------------
-         */
-
-        $domainName = strtolower(
-            trim((string) $domainName)
-        );
-
-        // Hapus http:// atau https://
-        $domainName = preg_replace(
-            '#^https?://#i',
-            '',
-            $domainName
-        );
-
-        // Hapus www.
-        $domainName = preg_replace(
-            '#^www\.#i',
-            '',
-            $domainName
-        );
-
-        // Hapus slash di belakang
-        $domainName = rtrim(
-            $domainName,
-            '/'
-        );
-
-
-        /*
-         * --------------------------------------------------------
-         * VALIDASI FORMAT DOMAIN
-         * --------------------------------------------------------
-         */
-
-        if (
-            !preg_match(
-                '/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i',
-                $domainName
-            )
-        ) {
+        $parsed = $this->normalizeDomainInput((string) $domainName, (string) $defaultExt);
+        if (!$parsed) {
             return [
-                'status' => 'error',
-                'code' => 400,
+                'status'  => 'error',
+                'code'    => 400,
                 'message' => 'Format nama domain tidak valid'
             ];
         }
 
+        $baseName     = $parsed['base_name'];
+        $searchedExt  = $parsed['extension'];
+        $searchedFull = $parsed['full_domain'];
 
-        /*
-         * --------------------------------------------------------
-         * CEK KONFIGURASI
-         * --------------------------------------------------------
-         */
+        $this->domainModel ??= new Domain();
+        $catalog = $this->domainModel->getAllExtensionsWithPrices();
 
-        if (
-            $this->resellerUrl === '' ||
-            $this->apiUsername === '' ||
-            $this->apiPassword === ''
-        ) {
-            return [
-                'status' => 'error',
-                'code' => 500,
-                'message' =>
-                    'Konfigurasi API Digital Registra belum lengkap'
-            ];
+        $catalogMap = [];
+        foreach ($catalog as $item) {
+            $catalogMap[strtolower($item['extension'])] = $item;
         }
 
-
-        /*
-         * --------------------------------------------------------
-         * URL API
-         * --------------------------------------------------------
-         */
-
-        $apiUrl =
-            $this->resellerUrl .
-            $this->checkEndpoint;
-
-
-        /*
-         * --------------------------------------------------------
-         * PASSWORD
-         * --------------------------------------------------------
-         *
-         * SRS-X mengharuskan password API
-         * dikirim menggunakan SHA-256.
-         *
-         * BUKAN password asli.
-         */
-
-        $passwordHash = hash(
-            'sha256',
-            $this->apiPassword
-        );
-
-
-        /*
-         * --------------------------------------------------------
-         * DATA POST
-         * --------------------------------------------------------
-         */
-
-        $post = [
-            'username' => $this->apiUsername,
-            'password' => $passwordHash,
-            'domain'   => $domainName
+        $extsToCheck = [];
+        $extsToCheck[$searchedExt] = $catalogMap[$searchedExt] ?? [
+            'extension'      => $searchedExt,
+            'price'          => 125000,
+            'original_price' => 209900,
+            'promo_price'    => 125000,
+            'badge'          => '',
+            'is_popular'     => false
         ];
 
-
-        /*
-         * --------------------------------------------------------
-         * CEK CURL
-         * --------------------------------------------------------
-         */
-
-        if (!function_exists('curl_init')) {
-            return [
-                'status' => 'error',
-                'code' => 500,
-                'message' =>
-                    'PHP cURL belum aktif'
-            ];
+        if ($includeSuggestions) {
+            foreach ($catalog as $item) {
+                $ext = strtolower($item['extension']);
+                if (!isset($extsToCheck[$ext])) {
+                    $extsToCheck[$ext] = $item;
+                }
+            }
         }
 
+        $checkResults = [];
 
-        /*
-         * --------------------------------------------------------
-         * CURL
-         * --------------------------------------------------------
-         */
+        // 1. Cek via SRS-X jika credentials tersedia
+        $useSrsx = ($this->resellerUrl !== '' && $this->apiUsername !== '' && $this->apiPassword !== '' && function_exists('curl_init'));
+        $srsxOutputs = [];
 
-        $ch = curl_init();
+        if ($useSrsx) {
+            $apiUrl = $this->resellerUrl . $this->checkEndpoint;
+            $passwordHash = hash('sha256', $this->apiPassword);
+            $multiHandle = curl_multi_init();
+            $curlHandles = [];
+            $metaMap = [];
 
-        curl_setopt_array(
-            $ch,
-            [
-                CURLOPT_URL =>
-                    $apiUrl,
+            foreach ($extsToCheck as $ext => $info) {
+                $fullDomain = $baseName . $ext;
+                $post = [
+                    'username' => $this->apiUsername,
+                    'password' => $passwordHash,
+                    'domain'   => $fullDomain
+                ];
 
-                CURLOPT_POST =>
-                    true,
+                $ch = curl_init();
+                curl_setopt_array($ch, [
+                    CURLOPT_URL            => $apiUrl,
+                    CURLOPT_POST           => true,
+                    CURLOPT_POSTFIELDS     => http_build_query($post, '', '&'),
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_CONNECTTIMEOUT => 3,
+                    CURLOPT_TIMEOUT        => 5,
+                    CURLOPT_USERAGENT      => 'HostingWebID-DomainChecker/1.0',
+                    CURLOPT_HTTPHEADER     => [
+                        'Content-Type: application/x-www-form-urlencoded',
+                        'Accept: application/xml,text/xml,*/*'
+                    ],
+                ]);
 
-                CURLOPT_POSTFIELDS =>
-                    http_build_query(
-                        $post,
-                        '',
-                        '&'
-                    ),
-
-                CURLOPT_RETURNTRANSFER =>
-                    true,
-
-                CURLOPT_CONNECTTIMEOUT =>
-                    10,
-
-                CURLOPT_TIMEOUT =>
-                    30,
-
-                CURLOPT_USERAGENT =>
-                    'HostingWebID-DomainChecker/1.0',
-
-                CURLOPT_HTTPHEADER => [
-                    'Content-Type: application/x-www-form-urlencoded',
-                    'Accept: application/xml,text/xml,*/*'
-                ],
-            ]
-        );
-
-
-        /*
-         * --------------------------------------------------------
-         * EKSEKUSI
-         * --------------------------------------------------------
-         */
-
-        $response = curl_exec($ch);
-
-        $curlError = curl_error($ch);
-
-        $httpCode = (int) curl_getinfo(
-            $ch,
-            CURLINFO_HTTP_CODE
-        );
-
-        curl_close($ch);
-
-
-        /*
-         * --------------------------------------------------------
-         * CURL ERROR / HTTP ERROR
-         * --------------------------------------------------------
-         */
-
-        if (
-            $response === false ||
-            $httpCode < 200 ||
-            $httpCode >= 300
-        ) {
-            return [
-                'status' => 'error',
-
-                'code' => 502,
-
-                'message' =>
-                    (
-                        $httpCode === 401 ||
-                        $httpCode === 403
-                    )
-                        ? 'Akses API Digital Registra ditolak. Periksa kredensial API atau whitelist IP.'
-                        : 'Tidak dapat terhubung ke Digital Registra',
-
-                'provider_http_code' =>
-                    $httpCode,
-
-                'provider_error' =>
-                    $curlError,
-
-                'provider_response' =>
-                    $response !== false
-                        ? substr($response, 0, 1000)
-                        : null
-            ];
-        }
-
-
-        /*
-         * --------------------------------------------------------
-         * PARSE XML
-         * --------------------------------------------------------
-         */
-
-        libxml_use_internal_errors(true);
-
-        $xml = simplexml_load_string(
-            $response
-        );
-
-
-        if ($xml === false) {
-
-            $xmlErrors = [];
-
-            foreach (
-                libxml_get_errors()
-                as $error
-            ) {
-                $xmlErrors[] =
-                    trim($error->message);
+                curl_multi_add_handle($multiHandle, $ch);
+                $id = (int)$ch;
+                $curlHandles[$id] = $ch;
+                $metaMap[$id] = [
+                    'full_domain' => $fullDomain,
+                    'extension'   => $ext,
+                    'info'        => $info
+                ];
             }
 
+            $running = null;
+            do {
+                curl_multi_exec($multiHandle, $running);
+                curl_multi_select($multiHandle);
+            } while ($running > 0);
+
+            libxml_use_internal_errors(true);
+
+            foreach ($curlHandles as $id => $ch) {
+                $resp     = curl_multi_getcontent($ch);
+                $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_multi_remove_handle($multiHandle, $ch);
+                curl_close($ch);
+
+                $meta       = $metaMap[$id];
+                $ext        = $meta['extension'];
+                $fullDomain = $meta['full_domain'];
+
+                $available    = null;
+                $providerCode = '';
+                $providerMsg  = '';
+
+                if ($resp !== false && $httpCode >= 200 && $httpCode < 300) {
+                    $xml = simplexml_load_string($resp);
+                    if ($xml !== false) {
+                        $providerCode = isset($xml->result->resultCode) ? trim((string)$xml->result->resultCode) : '';
+                        $providerMsg  = isset($xml->result->resultMsg) ? trim((string)$xml->result->resultMsg) : '';
+                        
+                        // Kode 1000: Domain Available
+                        if ($providerCode === '1000') {
+                            $available = true;
+                        } elseif ($providerCode === '2000' || strpos(strtolower($providerMsg), 'already registered') !== false || strpos(strtolower($providerMsg), 'taken') !== false) {
+                            $available = false;
+                        }
+                    }
+                }
+
+                $srsxOutputs[$ext] = [
+                    'available'     => $available,
+                    'provider_code' => $providerCode,
+                    'provider_msg'  => $providerMsg,
+                ];
+            }
+            curl_multi_close($multiHandle);
             libxml_clear_errors();
+        }
 
-            return [
-                'status' => 'error',
+        // Multi DoH Check untuk domain-domain yang belum valid dari registrar
+        $dohMulti = curl_multi_init();
+        $dohHandles = [];
+        $dohMeta = [];
 
-                'code' => 502,
+        foreach ($extsToCheck as $ext => $info) {
+            $fullDomain = $baseName . $ext;
+            $srsxAvail = $srsxOutputs[$ext]['available'] ?? null;
 
-                'message' =>
-                    'Response Digital Registra tidak valid',
+            if ($srsxAvail === null) {
+                $ch = curl_init();
+                curl_setopt_array($ch, [
+                    CURLOPT_URL => "https://dns.google/resolve?name=" . urlencode($fullDomain) . "&type=A",
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_CONNECTTIMEOUT => 2,
+                    CURLOPT_TIMEOUT => 4,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_USERAGENT => 'HostingWebID-DomainAvailability/1.0',
+                ]);
+                curl_multi_add_handle($dohMulti, $ch);
+                $id = (int)$ch;
+                $dohHandles[$id] = $ch;
+                $dohMeta[$id] = $ext;
+            }
+        }
 
-                'provider_http_code' =>
-                    $httpCode,
+        if (!empty($dohHandles)) {
+            $running = null;
+            do {
+                curl_multi_exec($dohMulti, $running);
+                curl_multi_select($dohMulti);
+            } while ($running > 0);
 
-                'provider_response' =>
-                    substr($response, 0, 1000),
+            foreach ($dohHandles as $id => $ch) {
+                $resp = curl_multi_getcontent($ch);
+                curl_multi_remove_handle($dohMulti, $ch);
+                curl_close($ch);
 
-                'xml_error' =>
-                    $xmlErrors
+                $ext = $dohMeta[$id];
+                $fullDomain = $baseName . $ext;
+                $available = true;
+
+                if ($resp !== false) {
+                    $json = json_decode($resp, true);
+                    if (is_array($json)) {
+                        $status = (int) ($json['Status'] ?? 0);
+                        $hasAnswer = !empty($json['Answer']) && is_array($json['Answer']) && count($json['Answer']) > 0;
+                        if ($status === 0 && $hasAnswer) {
+                            $available = false; // Domain registered
+                        } elseif ($status === 3) {
+                            $available = true; // Domain available
+                        }
+                    }
+                }
+
+                if (!isset($srsxOutputs[$ext])) {
+                    $srsxOutputs[$ext] = ['provider_code' => '', 'provider_msg' => ''];
+                }
+                $srsxOutputs[$ext]['available'] = $available;
+            }
+            curl_multi_close($dohMulti);
+        }
+
+        // Susun hasil pengecekan akhir
+        foreach ($extsToCheck as $ext => $info) {
+            $fullDomain = $baseName . $ext;
+            $srsx = $srsxOutputs[$ext] ?? ['available' => null, 'provider_code' => '', 'provider_msg' => ''];
+            
+            $available = $srsx['available'];
+            if ($available === null) {
+                $available = $this->checkDomainViaDnsOrDoH($fullDomain);
+            }
+
+            $price         = (int)($info['price'] ?? 125000);
+            $originalPrice = (int)($info['original_price'] ?? $price);
+            if ($originalPrice < $price) {
+                $originalPrice = $price;
+            }
+            $hasPromo = ($originalPrice > $price);
+
+            $checkResults[$ext] = [
+                'domain'                   => $fullDomain,
+                'base_name'                => $baseName,
+                'extension'                => $ext,
+                'available'                => $available,
+                'price'                    => $price,
+                'original_price'           => $originalPrice,
+                'price_formatted'          => 'Rp ' . number_format($price, 0, ',', '.'),
+                'original_price_formatted' => 'Rp ' . number_format($originalPrice, 0, ',', '.'),
+                'has_promo'                => $hasPromo,
+                'badge'                    => $info['badge'] ?? '',
+                'is_popular'               => !empty($info['is_popular']),
+                'domain_id'                => (int)($info['id'] ?? 0),
+                'provider_code'            => $srsx['provider_code'] ?? '',
+                'provider_message'         => $srsx['provider_msg'] ?? '',
+                'actions'                  => [
+                    'can_buy'         => ($available === true),
+                    'can_transfer'    => ($available === false),
+                    'can_buy_hosting' => true,
+                    'buy_text'        => 'Beli',
+                    'transfer_text'   => 'Transfer',
+                    'hosting_text'    => 'Beli Hosting',
+                    'buy_url'         => '/order?domain=' . urlencode($fullDomain),
+                    'transfer_url'    => '/order-transfer?domain=' . urlencode($fullDomain),
+                    'hosting_url'     => '/order-hosting?domain=' . urlencode($fullDomain),
+                ]
             ];
         }
 
-
-        /*
-         * --------------------------------------------------------
-         * AMBIL RESULT CODE
-         * --------------------------------------------------------
-         */
-
-        $resultCode =
-            isset($xml->result->resultCode)
-                ? trim(
-                    (string)
-                    $xml->result->resultCode
-                )
-                : '';
-
-
-        /*
-         * --------------------------------------------------------
-         * AMBIL RESULT MESSAGE
-         * --------------------------------------------------------
-         */
-
-        $resultMessage =
-            isset($xml->result->resultMsg)
-                ? trim(
-                    (string)
-                    $xml->result->resultMsg
-                )
-                : '';
-
-
-        /*
-         * --------------------------------------------------------
-         * DATA RESPONSE
-         * --------------------------------------------------------
-         */
-
-        $extension =
-            pathinfo(
-                $domainName,
-                PATHINFO_EXTENSION
-            );
-
-        $data = [
-            'domain' =>
-                $domainName,
-
-            'extension' =>
-                $extension !== ''
-                    ? '.' . strtolower($extension)
-                    : '',
-
-            'provider_code' =>
-                $resultCode,
-
-            'provider_message' =>
-                $resultMessage
-        ];
-
-
-        /*
-         * --------------------------------------------------------
-         * DOMAIN AVAILABLE
-         * --------------------------------------------------------
-         *
-         * SRS-X:
-         * 1000 = Domain Available
-         */
-
-        if ($resultCode === '1000') {
-
-            return [
-                'status' => 'success',
-
-                'code' => 200,
-
-                'available' => true,
-
-                'message' =>
-                    'Domain tersedia',
-
-                'data' => $data
+        $searchedResult = $checkResults[$searchedExt] ?? null;
+        if (!$searchedResult) {
+            $searchedResult = [
+                'domain'                   => $searchedFull,
+                'base_name'                => $baseName,
+                'extension'                => $searchedExt,
+                'available'                => true,
+                'price'                    => 125000,
+                'original_price'           => 209900,
+                'price_formatted'          => 'Rp 125.000',
+                'original_price_formatted' => 'Rp 209.900',
+                'has_promo'                => true,
+                'badge'                    => '',
+                'is_popular'               => false,
+                'domain_id'                => 0,
+                'provider_code'            => '',
+                'provider_message'         => '',
+                'actions'                  => [
+                    'can_buy'         => true,
+                    'can_transfer'    => false,
+                    'can_buy_hosting' => true,
+                    'buy_text'        => 'Beli',
+                    'transfer_text'   => 'Transfer',
+                    'hosting_text'    => 'Beli Hosting',
+                    'buy_url'         => '/order?domain=' . urlencode($searchedFull),
+                    'transfer_url'    => '/order-transfer?domain=' . urlencode($searchedFull),
+                    'hosting_url'     => '/order-hosting?domain=' . urlencode($searchedFull),
+                ]
             ];
         }
 
-
-        /*
-         * --------------------------------------------------------
-         * DOMAIN UNAVAILABLE
-         * --------------------------------------------------------
-         *
-         * Jika SRS-X mengembalikan kode 2400,
-         * anggap domain tidak tersedia.
-         */
-
-        if ($resultCode === '2400') {
-
-            return [
-                'status' => 'success',
-
-                'code' => 200,
-
-                'available' => false,
-
-                'message' =>
-                    'Domain tidak tersedia',
-
-                'data' => $data
-            ];
+        $suggestions = [];
+        foreach ($checkResults as $ext => $res) {
+            if ($ext !== $searchedExt) {
+                $suggestions[] = $res;
+            }
         }
 
+        // Urutkan suggestions: Available lebih dulu, lalu popular
+        usort($suggestions, function ($a, $b) {
+            if ($a['available'] === true && $b['available'] !== true) return -1;
+            if ($a['available'] !== true && $b['available'] === true) return 1;
+            if ($a['is_popular'] && !$b['is_popular']) return -1;
+            if (!$a['is_popular'] && $b['is_popular']) return 1;
+            return 0;
+        });
 
-        /*
-         * --------------------------------------------------------
-         * RESPONSE PROVIDER LAIN
-         * --------------------------------------------------------
-         */
+        $allResults = array_merge([$searchedResult], $suggestions);
 
         return [
-            'status' => 'error',
-
-            'code' => 502,
-
-            'message' =>
-                $resultMessage !== ''
-                    ? $resultMessage
-                    : 'Digital Registra gagal memproses pengecekan domain',
-
-            'data' =>
-                array_merge(
-                    $data,
-                    [
-                        'available' => null
-                    ]
-                )
+            'status'    => 'success',
+            'code'      => 200,
+            'available' => $searchedResult['available'],
+            'message'   => $searchedResult['available'] === true
+                ? 'Domain tersedia!'
+                : ($searchedResult['available'] === false ? 'Domain tidak tersedia' : 'Pemeriksaan domain selesai'),
+            'data'      => array_merge($searchedResult, [
+                'searched'    => $searchedResult,
+                'suggestions' => $suggestions,
+                'results'     => $allResults,
+                'total'       => count($allResults),
+            ])
         ];
     }
-
 
     /**
      * ============================================================
      * BATCH CHECK DOMAIN
      * ============================================================
-     *
-     * Mengecek availability domain di semua TLD sekaligus
-     * menggunakan curl_multi untuk request paralel.
      */
     public function batchCheckDomain($baseName): array
     {
-        /*
-         * --------------------------------------------------------
-         * VALIDASI INPUT
-         * --------------------------------------------------------
-         */
-
-        if (empty($baseName)) {
-            return [
-                'status' => 'error',
-                'code' => 400,
-                'message' => 'Nama domain wajib diisi'
-            ];
-        }
-
-        $baseName = strtolower(
-            trim((string) $baseName)
-        );
-
-        // Hapus http:// atau https://
-        $baseName = preg_replace(
-            '#^https?://#i',
-            '',
-            $baseName
-        );
-
-        // Hapus www.
-        $baseName = preg_replace(
-            '#^www\.#i',
-            '',
-            $baseName
-        );
-
-        // Hapus slash di belakang
-        $baseName = rtrim($baseName, '/');
-
-        // Hapus ekstensi jika user memasukkan .com dll
-        $baseName = preg_replace(
-            '/\.(?:co\.id|it\.com|com|net|org|id|xyz|info|online|cloud|site|store|tech|dev|io|biz|us|me|tv|cc|buzz|lol|mom)$/i',
-            '',
-            $baseName
-        );
-
-        // Validasi nama domain dasar
-        if (
-            !preg_match(
-                '/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/i',
-                $baseName
-            )
-        ) {
-            return [
-                'status' => 'error',
-                'code' => 400,
-                'message' => 'Format nama domain tidak valid'
-            ];
-        }
-
-
-        /*
-         * --------------------------------------------------------
-         * CEK KONFIGURASI
-         * --------------------------------------------------------
-         */
-
-        if (
-            $this->resellerUrl === '' ||
-            $this->apiUsername === '' ||
-            $this->apiPassword === ''
-        ) {
-            return [
-                'status' => 'error',
-                'code' => 500,
-                'message' =>
-                    'Konfigurasi API Digital Registra belum lengkap'
-            ];
-        }
-
-        if (!function_exists('curl_init')) {
-            return [
-                'status' => 'error',
-                'code' => 500,
-                'message' => 'PHP cURL belum aktif'
-            ];
-        }
-
-
-        /*
-         * --------------------------------------------------------
-         * AMBIL SEMUA EKSTENSI DARI DATABASE
-         * --------------------------------------------------------
-         */
-
-        $this->domainModel ??= new Domain();
-
-        $extensions = $this->domainModel
-            ->getAllExtensionsWithPrices();
-
-        if (empty($extensions)) {
-            return [
-                'status' => 'error',
-                'code' => 500,
-                'message' => 'Belum ada data ekstensi domain di database'
-            ];
-        }
-
-
-        /*
-         * --------------------------------------------------------
-         * SETUP CURL MULTI
-         * --------------------------------------------------------
-         */
-
-        $apiUrl =
-            $this->resellerUrl .
-            $this->checkEndpoint;
-
-        $passwordHash = hash(
-            'sha256',
-            $this->apiPassword
-        );
-
-        $multiHandle = curl_multi_init();
-        $curlHandles = [];
-        $domainMap = [];
-
-        foreach ($extensions as $ext) {
-
-            $extension = $ext['extension'] ?? '';
-            $fullDomain = $baseName . $extension;
-
-            $post = [
-                'username' => $this->apiUsername,
-                'password' => $passwordHash,
-                'domain'   => $fullDomain
-            ];
-
-            $ch = curl_init();
-
-            curl_setopt_array(
-                $ch,
-                [
-                    CURLOPT_URL =>
-                        $apiUrl,
-
-                    CURLOPT_POST =>
-                        true,
-
-                    CURLOPT_POSTFIELDS =>
-                        http_build_query(
-                            $post,
-                            '',
-                            '&'
-                        ),
-
-                    CURLOPT_RETURNTRANSFER =>
-                        true,
-
-                    CURLOPT_CONNECTTIMEOUT =>
-                        10,
-
-                    CURLOPT_TIMEOUT =>
-                        30,
-
-                    CURLOPT_USERAGENT =>
-                        'HostingWebID-DomainChecker/1.0',
-
-                    CURLOPT_HTTPHEADER => [
-                        'Content-Type: application/x-www-form-urlencoded',
-                        'Accept: application/xml,text/xml,*/*'
-                    ],
-                ]
-            );
-
-            curl_multi_add_handle(
-                $multiHandle,
-                $ch
-            );
-
-            $index = (int) $ch;
-            $curlHandles[$index] = $ch;
-
-            $domainMap[$index] = [
-                'domain'      => $fullDomain,
-                'extension'   => $extension,
-                'price'       => (int) ($ext['price'] ?? 0),
-                'promo_price' => isset($ext['promo_price']) && $ext['promo_price'] !== null && $ext['promo_price'] !== ''
-                    ? (int) $ext['promo_price']
-                    : null,
-                'domain_id'   => (int) ($ext['id'] ?? 0),
-            ];
-        }
-
-
-        /*
-         * --------------------------------------------------------
-         * EKSEKUSI CURL MULTI
-         * --------------------------------------------------------
-         */
-
-        $running = null;
-
-        do {
-            curl_multi_exec(
-                $multiHandle,
-                $running
-            );
-
-            curl_multi_select($multiHandle);
-
-        } while ($running > 0);
-
-
-        /*
-         * --------------------------------------------------------
-         * PARSE SEMUA RESPONSE
-         * --------------------------------------------------------
-         */
-
-        $results = [];
-
-        libxml_use_internal_errors(true);
-
-        foreach ($curlHandles as $index => $ch) {
-
-            $response = curl_multi_getcontent($ch);
-            $httpCode = (int) curl_getinfo(
-                $ch,
-                CURLINFO_HTTP_CODE
-            );
-
-            curl_multi_remove_handle(
-                $multiHandle,
-                $ch
-            );
-
-            curl_close($ch);
-
-            $info = $domainMap[$index];
-
-            // Default: error / unknown
-            $available = null;
-            $providerCode = '';
-            $providerMessage = '';
-
-            if (
-                $response !== false &&
-                $httpCode >= 200 &&
-                $httpCode < 300
-            ) {
-                $xml = simplexml_load_string(
-                    $response
-                );
-
-                if ($xml !== false) {
-
-                    $providerCode =
-                        isset($xml->result->resultCode)
-                            ? trim(
-                                (string)
-                                $xml->result->resultCode
-                            )
-                            : '';
-
-                    $providerMessage =
-                        isset($xml->result->resultMsg)
-                            ? trim(
-                                (string)
-                                $xml->result->resultMsg
-                            )
-                            : '';
-
-                    if ($providerCode === '1000') {
-                        $available = true;
-                    } elseif ($providerCode === '2400') {
-                        $available = false;
-                    }
-                }
-            }
-
-            $results[] = [
-                'domain'           => $info['domain'],
-                'extension'        => $info['extension'],
-                'available'        => $available,
-                'price'            => $info['price'],
-                'promo_price'      => $info['promo_price'],
-                'domain_id'        => $info['domain_id'],
-                'provider_code'    => $providerCode,
-                'provider_message' => $providerMessage,
-            ];
-        }
-
-        libxml_clear_errors();
-
-        curl_multi_close($multiHandle);
-
-
-        /*
-         * --------------------------------------------------------
-         * URUTKAN: Available dulu, lalu unavailable
-         * --------------------------------------------------------
-         */
-
-        usort($results, function ($a, $b) {
-            if ($a['available'] === true && $b['available'] !== true) {
-                return -1;
-            }
-            if ($a['available'] !== true && $b['available'] === true) {
-                return 1;
-            }
-            return 0;
-        });
-
-
-        return [
-            'status' => 'success',
-            'code' => 200,
-            'message' => 'Batch domain check selesai',
-            'data' => [
-                'query' => $baseName,
-                'total' => count($results),
-                'results' => $results
-            ]
-        ];
+        return $this->checkDomain($baseName, '.com', true);
     }
 
-
-    /*
+    /**
      * ============================================================
-     * METHOD LAIN DARI CONTROLLER KAMU
+     * METHOD LAIN DARI CONTROLLER
      * ============================================================
      */
-
     public function getAllDomains(): array
     {
         try {
-
-            $this->domainModel ??=
-                new Domain();
+            $this->domainModel ??= new Domain();
 
             return [
-                'status' => 'success',
-
-                'code' => 200,
-
-                'message' =>
-                    'Data domain berhasil diambil',
-
-                'data' =>
-                    $this->domainModel
-                        ->getAllDomains()
+                'status'  => 'success',
+                'code'    => 200,
+                'message' => 'Data domain berhasil diambil',
+                'data'    => $this->domainModel->getAllDomains()
             ];
-
         } catch (Throwable $exception) {
-
             return [
-                'status' => 'error',
-
-                'code' => 500,
-
-                'message' =>
-                    'Gagal mengambil data domain'
+                'status'  => 'error',
+                'code'    => 500,
+                'message' => 'Gagal mengambil data domain'
             ];
         }
     }
 
-
     public function getDomainById($id): array
     {
-        if (
-            !is_numeric($id) ||
-            (int) $id < 1
-        ) {
+        if (!is_numeric($id) || (int) $id < 1) {
             return [
-                'status' => 'error',
-
-                'code' => 400,
-
-                'message' =>
-                    'ID domain tidak valid'
+                'status'  => 'error',
+                'code'    => 400,
+                'message' => 'ID domain tidak valid'
             ];
         }
 
         try {
-
-            $this->domainModel ??=
-                new Domain();
-
-            $domain =
-                $this->domainModel->findById(
-                            (int) $id
-                        );
+            $this->domainModel ??= new Domain();
+            $domain = $this->domainModel->findById((int) $id);
 
             if (!$domain) {
                 return [
-                    'status' => 'error',
-
-                    'code' => 404,
-
-                    'message' =>
-                        'Domain tidak ditemukan'
+                    'status'  => 'error',
+                    'code'    => 404,
+                    'message' => 'Domain tidak ditemukan'
                 ];
             }
 
             return [
-                'status' => 'success',
-
-                'code' => 200,
-
-                'message' =>
-                    'Data domain berhasil diambil',
-
-                'data' => $domain
+                'status'  => 'success',
+                'code'    => 200,
+                'message' => 'Data domain berhasil diambil',
+                'data'    => $domain
             ];
-
         } catch (Throwable $exception) {
-
             return [
-                'status' => 'error',
-
-                'code' => 500,
-
-                'message' =>
-                    'Gagal mengambil data domain'
+                'status'  => 'error',
+                'code'    => 500,
+                'message' => 'Gagal mengambil data domain'
             ];
         }
     }

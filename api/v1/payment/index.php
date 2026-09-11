@@ -1,240 +1,131 @@
-<?php
+﻿<?php
 // api/v1/payment/index.php
 
-header(
-    'Content-Type: application/json; charset=UTF-8'
-);
+header('Content-Type: application/json; charset=UTF-8');
+header('Access-Control-Allow-Origin: http://localhost:3000');
+header('Access-Control-Allow-Credentials: true');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 
-header(
-    'Access-Control-Allow-Origin: http://localhost:3000'
-);
-
-header(
-    'Access-Control-Allow-Credentials: true'
-);
-
-header(
-    'Access-Control-Allow-Methods: GET, POST, OPTIONS'
-);
-
-header(
-    'Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With'
-);
-
-
-/**
- * =====================================================
- * PREFLIGHT
- * =====================================================
- */
-if (
-    $_SERVER['REQUEST_METHOD'] === 'OPTIONS'
-) {
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
 
+require_once __DIR__ . '/../../../service/database/db.php';
+require_once __DIR__ . '/../../../controller/users/user/AuthController.php';
+require_once __DIR__ . '/../../../controller/dashboardusers/payment/PaymentController.php';
 
-/**
- * =====================================================
- * LOAD
- * =====================================================
- */
-require_once
-    __DIR__ .
-    '/../../../controller/users/user/AuthController.php';
+$auth = new AuthController();
+$session = $auth->checkSession();
 
-require_once
-    __DIR__ .
-    '/../../../controller/dashboardusers/payment/PaymentController.php';
-
-
-/**
- * =====================================================
- * SESSION
- * =====================================================
- */
-$auth =
-    new AuthController();
-
-$session =
-    $auth->checkSession();
-
-if (
-    ($session['code'] ?? 500)
-    !== 200
-) {
-
-    http_response_code(
-        $session['code'] ?? 401
-    );
-
-    echo json_encode(
-        $session,
-        JSON_UNESCAPED_UNICODE
-    );
-
-    exit;
+$userId = null;
+if (($session['code'] ?? 500) === 200 && !empty($session['data']['user_id'])) {
+    $userId = (int) $session['data']['user_id'];
 }
 
+$db = Database::getInstance()->getConnection();
 
-$userId =
-    $session['data']['user_id']
-    ?? null;
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    // 1. By payment_number
+    if (!empty($_GET['payment_number'])) {
+        $stmt = $db->prepare("
+            SELECT p.*, o.order_number, o.status AS order_status
+            FROM payments p
+            JOIN orders o ON o.id = p.order_id
+            WHERE p.payment_number = :pnum
+            LIMIT 1
+        ");
+        $stmt->execute([':pnum' => $_GET['payment_number']]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            echo json_encode([
+                'status' => 'success',
+                'code' => 200,
+                'message' => 'Status payment',
+                'data' => $row
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            exit;
+        }
+    }
 
+    // 2. By order_id
+    if (!empty($_GET['order_id'])) {
+        $stmt = $db->prepare("
+            SELECT p.*, o.order_number, o.status AS order_status
+            FROM payments p
+            JOIN orders o ON o.id = p.order_id
+            WHERE p.order_id = :oid
+            ORDER BY p.id DESC
+            LIMIT 1
+        ");
+        $stmt->execute([':oid' => (int)$_GET['order_id']]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            echo json_encode([
+                'status' => 'success',
+                'code' => 200,
+                'message' => 'Status payment',
+                'data' => $row
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            exit;
+        }
+    }
 
-if (empty($userId)) {
+    // 3. By payment_id (can be payment.id or order.id)
+    if (!empty($_GET['payment_id'])) {
+        $stmt = $db->prepare("
+            SELECT p.*, o.order_number, o.status AS order_status
+            FROM payments p
+            JOIN orders o ON o.id = p.order_id
+            WHERE p.id = :pid OR p.order_id = :pid
+            ORDER BY p.id DESC
+            LIMIT 1
+        ");
+        $stmt->execute([':pid' => (int)$_GET['payment_id']]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            echo json_encode([
+                'status' => 'success',
+                'code' => 200,
+                'message' => 'Status payment',
+                'data' => $row
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            exit;
+        }
+    }
 
-    http_response_code(401);
-
-    echo json_encode([
-        'status' => 'error',
-        'code' => 401,
-        'message' =>
-            'User belum login'
-    ]);
-
-    exit;
-}
-
-
-$paymentController =
-    new PaymentController();
-
-
-/**
- * =====================================================
- * POST
- * =====================================================
- */
-if (
-    $_SERVER['REQUEST_METHOD'] === 'POST'
-) {
-
-    $input =
-        json_decode(
-            file_get_contents(
-                'php://input'
-            ),
-            true
-        );
-
-
-    if (!is_array($input)) {
-
-        http_response_code(400);
-
-        echo json_encode([
-            'status' => 'error',
-            'code' => 400,
-            'message' =>
-                'Format JSON tidak valid'
-        ]);
-
+    // Default: list all user payments
+    if (!$userId) {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'code' => 401, 'message' => 'User belum login']);
         exit;
     }
 
-
-    /**
-     * order_id
-     */
-    $orderId =
-        $input['order_id']
-        ?? null;
-
-
-        /**
-     * =====================================================
-     * payment_method
-     * =====================================================
-     */
-    $paymentMethod =
-        $input['payment_method']
-        ?? 'transfer';
-
-
-    $result =
-        $paymentController->createPayment(
-            $userId,
-            $orderId,
-            $paymentMethod
-        );
-
-
-    http_response_code(
-        $result['code'] ?? 500
-    );
-
-
-    echo json_encode(
-        $result,
-        JSON_UNESCAPED_UNICODE
-    );
-
+    $paymentController = new PaymentController();
+    $result = $paymentController->getAll($userId);
+    http_response_code($result['code'] ?? 500);
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-
-/**
- * =====================================================
- * GET
- * =====================================================
- */
-if (
-    $_SERVER['REQUEST_METHOD'] === 'GET'
-) {
-
-    if (
-        isset(
-            $_GET['payment_id']
-        )
-    ) {
-
-        $paymentId =
-            $_GET['payment_id'];
-
-
-        $result =
-            $paymentController->getById(
-                $userId,
-                $paymentId
-            );
-
-    } else {
-
-        $result =
-            $paymentController->getAll(
-                $userId
-            );
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!$userId) {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'code' => 401, 'message' => 'User belum login']);
+        exit;
     }
 
+    $input = json_decode(file_get_contents('php://input'), true);
+    $orderId = $input['order_id'] ?? null;
+    $paymentMethod = $input['payment_method'] ?? 'transfer';
 
-    http_response_code(
-        $result['code'] ?? 500
-    );
-
-
-    echo json_encode(
-        $result,
-        JSON_UNESCAPED_UNICODE
-    );
-
+    $paymentController = new PaymentController();
+    $result = $paymentController->createPayment($userId, $orderId, $paymentMethod);
+    http_response_code($result['code'] ?? 500);
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-
-/**
- * =====================================================
- * METHOD NOT ALLOWED
- * =====================================================
- */
 http_response_code(405);
-
-echo json_encode([
-    'status' => 'error',
-    'code' => 405,
-    'message' =>
-        'Method not allowed'
-]);
-
-exit;
+echo json_encode(['status' => 'error', 'code' => 405, 'message' => 'Method not allowed']);

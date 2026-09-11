@@ -1,6 +1,4 @@
 <?php
-// models/admin/payment/Payment.php
-
 require_once __DIR__ . '/../../../service/database/db.php';
 
 class AdminPayment
@@ -27,11 +25,15 @@ class AdminPayment
                 p.paid_at,
                 p.confirmation_requested_at,
                 p.created_at,
-                GROUP_CONCAT(oi.domain_name ORDER BY oi.id SEPARATOR ', ') AS domains
+                u.email,
+                GROUP_CONCAT(DISTINCT oi.domain_name ORDER BY oi.id SEPARATOR ', ') AS domains,
+                GROUP_CONCAT(DISTINCT oi.service_category ORDER BY oi.id SEPARATOR ', ') AS service_category,
+                GROUP_CONCAT(DISTINCT oi.billing_period ORDER BY oi.id SEPARATOR ', ') AS billing_period
             FROM payments p
             INNER JOIN orders o ON o.id = p.order_id
             INNER JOIN users u ON u.id = o.user_id
             LEFT JOIN order_items oi ON oi.order_id = o.id
+            WHERE p.status = 'paid' OR p.confirmation_requested_at IS NOT NULL
             GROUP BY p.id
             ORDER BY p.id DESC
         ");
@@ -51,6 +53,7 @@ class AdminPayment
                 p.payment_method,
                 p.status,
                 p.paid_at,
+                p.confirmation_requested_at,
                 p.created_at,
                 o.order_number,
                 o.subtotal,
@@ -92,7 +95,7 @@ class AdminPayment
 
         try {
             $stmt = $this->db->prepare("
-                SELECT p.*, o.subtotal, o.ppn, o.discount, o.total
+                SELECT p.*, o.subtotal, o.ppn, o.discount, o.total, o.user_id
                 FROM payments p
                 INNER JOIN orders o ON o.id = p.order_id
                 WHERE p.id = :id
@@ -112,10 +115,13 @@ class AdminPayment
                 return ['code' => 409, 'message' => 'Payment sudah dikonfirmasi'];
             }
 
+            $orderId = (int) $payment['order_id'];
+            $userId = (int) $payment['user_id'];
+
             $invoiceStmt = $this->db->prepare(
                 'SELECT id FROM invoices WHERE order_id = :order_id LIMIT 1 FOR UPDATE'
             );
-            $invoiceStmt->execute([':order_id' => (int) $payment['order_id']]);
+            $invoiceStmt->execute([':order_id' => $orderId]);
             $invoice = $invoiceStmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$invoice) {
@@ -129,7 +135,7 @@ class AdminPayment
                          'paid', NOW(), NOW(), NOW())
                 ");
                 $createInvoice->execute([
-                    ':order_id' => (int) $payment['order_id'],
+                    ':order_id' => $orderId,
                     ':invoice_number' => $invoiceNumber,
                     ':subtotal' => $payment['subtotal'],
                     ':ppn' => $payment['ppn'],
@@ -157,7 +163,7 @@ class AdminPayment
             $updateOrder = $this->db->prepare(
                 "UPDATE orders SET status = 'paid', updated_at = NOW() WHERE id = :id"
             );
-            $updateOrder->execute([':id' => (int) $payment['order_id']]);
+            $updateOrder->execute([':id' => $orderId]);
 
             $updateItems = $this->db->prepare("
                 UPDATE order_items
@@ -171,7 +177,53 @@ class AdminPayment
                     END
                 WHERE order_id = :order_id
             ");
-            $updateItems->execute([':order_id' => (int) $payment['order_id']]);
+            $updateItems->execute([':order_id' => $orderId]);
+
+            // Activate or create in user_hostings
+            $checkHosting = $this->db->prepare("SELECT id FROM user_hostings WHERE order_id = :order_id");
+            $checkHosting->execute([':order_id' => $orderId]);
+            if ($checkHosting->rowCount() > 0) {
+                $updateHosting = $this->db->prepare("
+                    UPDATE user_hostings
+                    SET status = 'active',
+                        start_date = CURDATE(),
+                        expiry_date = DATE_ADD(CURDATE(), INTERVAL 1 YEAR)
+                    WHERE order_id = :order_id
+                ");
+                $updateHosting->execute([':order_id' => $orderId]);
+            } else {
+                // If it was a hosting order item
+                $itemsStmt = $this->db->prepare("SELECT * FROM order_items WHERE order_id = :order_id");
+                $itemsStmt->execute([':order_id' => $orderId]);
+                $orderItems = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                foreach ($orderItems as $item) {
+                    $cat = strtolower((string)$item['service_category']);
+                    $dom = (string)$item['domain_name'];
+                    $amt = (float)$item['price'];
+
+                    if ($cat === 'hosting' || $cat === 'cloud_hosting' || $amt >= 500000) {
+                        $planId = 2; // Default Bisnis Pro
+                        if ($amt < 1000000) $planId = 1; // Starter
+                        if ($amt >= 1800000) $planId = 3; // Enterprise
+
+                        $cpanelUser = 'cp_' . substr(preg_replace('/[^a-z0-9]/', '', strtolower($dom)), 0, 8);
+                        $insertH = $this->db->prepare("
+                            INSERT INTO user_hostings 
+                            (user_id, order_id, plan_id, domain_name, cpanel_username, server_ip, billing_cycle, start_date, expiry_date, status, created_at)
+                            VALUES
+                            (:user_id, :order_id, :plan_id, :domain_name, :cpanel_username, '103.147.154.21', 'yearly', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 1 YEAR), 'active', NOW())
+                        ");
+                        $insertH->execute([
+                            ':user_id' => $userId,
+                            ':order_id' => $orderId,
+                            ':plan_id' => $planId,
+                            ':domain_name' => $dom,
+                            ':cpanel_username' => $cpanelUser
+                        ]);
+                    }
+                }
+            }
 
             $this->db->commit();
             return ['code' => 200, 'invoice_id' => $invoiceId];

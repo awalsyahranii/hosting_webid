@@ -1,4 +1,5 @@
 <?php
+// api/v1/payment/request-confirmation.php
 
 header('Content-Type: application/json; charset=UTF-8');
 header('Access-Control-Allow-Origin: http://localhost:3000');
@@ -22,10 +23,19 @@ if (($session['code'] ?? 500) !== 200) {
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
-$paymentId = is_array($input) ? ($input['payment_id'] ?? null) : null;
+if (!is_array($input)) {
+    $input = [];
+}
+
+$paymentId = $input['payment_id'] ?? null;
+$orderId = $input['order_id'] ?? null;
+$paymentNumber = $input['payment_number'] ?? null;
+
 $result = (new PaymentController())->requestConfirmation(
     $session['data']['user_id'] ?? null,
-    $paymentId
+    $paymentId,
+    $orderId,
+    $paymentNumber
 );
 
 http_response_code($result['code'] ?? 500);

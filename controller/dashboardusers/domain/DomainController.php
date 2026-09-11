@@ -527,7 +527,7 @@ class DomainController
 
         // Hapus ekstensi jika user memasukkan .com dll
         $baseName = preg_replace(
-            '/\.(com|net|org|id|co\.id|xyz|info|online|cloud|site|store|tech|dev|io|biz|us|me|tv|cc|buzz|lol|mom|it\.com)$/i',
+            '/\.(?:co\.id|it\.com|com|net|org|id|xyz|info|online|cloud|site|store|tech|dev|io|biz|us|me|tv|cc|buzz|lol|mom)$/i',
             '',
             $baseName
         );

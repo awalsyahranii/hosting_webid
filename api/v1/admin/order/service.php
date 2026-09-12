@@ -90,7 +90,7 @@ if (
  */
 if (
     !isset($_SESSION['role']) ||
-    $_SESSION['role'] !== 'admin'
+    (!in_array($_SESSION['role'] ?? '', ['admin', 'super_admin']))
 ) {
 
     http_response_code(403);

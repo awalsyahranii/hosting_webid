@@ -28,7 +28,7 @@ if (($_SESSION['logged_in'] ?? false) !== true) {
     exit;
 }
 
-if (($_SESSION['role'] ?? null) !== 'admin') {
+if ((!in_array($_SESSION['role'] ?? '', ['admin', 'super_admin']))) {
     http_response_code(403);
     echo json_encode(['status' => 'error', 'code' => 403, 'message' => 'Akses hanya untuk admin']);
     exit;

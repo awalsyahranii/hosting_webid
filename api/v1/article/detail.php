@@ -1,31 +1,22 @@
 <?php
 // api/v1/article/detail.php
 
-header('Content-Type: application/json; charset=utf-8');
+header('Content-Type: application/json; charset=UTF-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Accept');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
+    http_response_code(200);
     exit;
 }
 
-require_once __DIR__ . '/../../../controller/landingpage/ArticleController.php';
+require_once __DIR__ . '/../../../controller/dashboardusers/article/ArticleController.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    http_response_code(405);
-    echo json_encode([
-        'status'  => 'error',
-        'code'    => 405,
-        'message' => 'Method not allowed'
-    ]);
-    exit;
-}
+$slug = !empty($_GET['slug']) ? trim($_GET['slug']) : null;
 
-$slug = trim((string) ($_GET['slug'] ?? ''));
 $controller = new ArticleController();
-$result = $controller->getDetail($slug);
+$result = $controller->getBySlug($slug);
 
-http_response_code((int) ($result['code'] ?? 200));
+http_response_code($result['code'] ?? 200);
 echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

@@ -75,7 +75,7 @@ if (!is_array($input)) {
     $errorResponse = [
         'status' => 'error',
         'code' => 400,
-        'message' => 'Format JSON tidak valid'
+        'message' => 'Format JSON tidak valid'  
     ];
     log_debug("Invalid JSON parsed", $errorResponse);
     echo json_encode($errorResponse);

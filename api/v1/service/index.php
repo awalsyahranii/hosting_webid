@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // api/v1/service/index.php
 
 header('Content-Type: application/json; charset=UTF-8');
@@ -144,6 +144,111 @@ try {
             'code' => 200,
             'message' => 'Data domain berhasil diambil',
             'data' => $domains
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+
+    if ($type === 'google_ads' || $type === 'google-ads' || $type === 'iklan' || $type === 'ads') {
+        $stmt = $db->prepare("
+            SELECT 
+                oi.id,
+                oi.order_id,
+                o.order_number,
+                o.user_id,
+                oi.domain_id,
+                oi.domain_name,
+                'google_ads' AS service_category,
+                oi.billing_period,
+                oi.start_date,
+                oi.expiry_date,
+                oi.service_status,
+                oi.price,
+                o.status AS order_status,
+                o.created_at AS order_date
+            FROM order_items oi
+            INNER JOIN orders o ON o.id = oi.order_id
+            WHERE o.user_id = :user_id
+              AND (oi.service_category IN ('google_ads', 'google-ads', 'iklan', 'ads') OR oi.domain_name LIKE '%Google Ads%' OR oi.domain_name LIKE '%Iklan%')
+            ORDER BY oi.id DESC
+        ");
+        $stmt->execute([':user_id' => $userId]);
+        $ads = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode([
+            'status' => 'success',
+            'code' => 200,
+            'message' => 'Data Google Ads berhasil diambil',
+            'data' => $ads
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+
+    if ($type === 'seo_pbn' || $type === 'seo-pbn' || $type === 'seo' || $type === 'pbn') {
+        $stmt = $db->prepare("
+            SELECT 
+                oi.id,
+                oi.order_id,
+                o.order_number,
+                o.user_id,
+                oi.domain_id,
+                oi.domain_name,
+                'seo_pbn' AS service_category,
+                oi.billing_period,
+                oi.start_date,
+                oi.expiry_date,
+                oi.service_status,
+                oi.price,
+                o.status AS order_status,
+                o.created_at AS order_date
+            FROM order_items oi
+            INNER JOIN orders o ON o.id = oi.order_id
+            WHERE o.user_id = :user_id
+              AND (oi.service_category IN ('seo_pbn', 'seo-pbn') OR oi.domain_name LIKE '%SEO%' OR oi.domain_name LIKE '%PBN%')
+            ORDER BY oi.id DESC
+        ");
+        $stmt->execute([':user_id' => $userId]);
+        $seo = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode([
+            'status' => 'success',
+            'code' => 200,
+            'message' => 'Data SEO PBN berhasil diambil',
+            'data' => $seo
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+
+    if ($type === 'website' || $type === 'web') {
+        $stmt = $db->prepare("
+            SELECT 
+                oi.id,
+                oi.order_id,
+                o.order_number,
+                o.user_id,
+                oi.domain_id,
+                oi.domain_name,
+                'website' AS service_category,
+                oi.billing_period,
+                oi.start_date,
+                oi.expiry_date,
+                oi.service_status,
+                oi.price,
+                o.status AS order_status,
+                o.created_at AS order_date
+            FROM order_items oi
+            INNER JOIN orders o ON o.id = oi.order_id
+            WHERE o.user_id = :user_id
+              AND (oi.service_category IN ('website', 'web') OR oi.domain_name LIKE '%Website%' OR oi.domain_name LIKE '%Jasa%')
+            ORDER BY oi.id DESC
+        ");
+        $stmt->execute([':user_id' => $userId]);
+        $websites = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode([
+            'status' => 'success',
+            'code' => 200,
+            'message' => 'Data Website berhasil diambil',
+            'data' => $websites
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }

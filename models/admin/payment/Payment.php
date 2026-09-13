@@ -169,17 +169,21 @@ class AdminPayment
                 UPDATE order_items
                 SET service_status = 'active',
                     start_date = NOW(),
-                    expiry_date = CASE LOWER(billing_period)
-                        WHEN 'weekly' THEN DATE_ADD(NOW(), INTERVAL 7 DAY)
-                        WHEN 'monthly' THEN DATE_ADD(NOW(), INTERVAL 1 MONTH)
-                        WHEN 'yearly' THEN DATE_ADD(NOW(), INTERVAL 1 YEAR)
+                    expiry_date = CASE
+                        WHEN LOWER(billing_period) LIKE '%14%' THEN DATE_ADD(NOW(), INTERVAL 14 DAY)
+                        WHEN LOWER(billing_period) LIKE '%20%' THEN DATE_ADD(NOW(), INTERVAL 20 DAY)
+                        WHEN LOWER(billing_period) LIKE '%30%' THEN DATE_ADD(NOW(), INTERVAL 30 DAY)
+                        WHEN LOWER(billing_period) = 'weekly' THEN DATE_ADD(NOW(), INTERVAL 7 DAY)
+                        WHEN LOWER(billing_period) = 'monthly' THEN DATE_ADD(NOW(), INTERVAL 1 MONTH)
+                        WHEN LOWER(billing_period) = 'yearly' THEN DATE_ADD(NOW(), INTERVAL 1 YEAR)
+                        WHEN LOWER(service_category) IN ('google_ads', 'google-ads', 'iklan', 'ads') THEN DATE_ADD(NOW(), INTERVAL 30 DAY)
                         ELSE DATE_ADD(NOW(), INTERVAL 1 YEAR)
                     END
                 WHERE order_id = :order_id
             ");
             $updateItems->execute([':order_id' => $orderId]);
 
-            // Activate or create in user_hostings
+            // Activate or create in user_hostings ONLY for hosting plans
             $checkHosting = $this->db->prepare("SELECT id FROM user_hostings WHERE order_id = :order_id");
             $checkHosting->execute([':order_id' => $orderId]);
             if ($checkHosting->rowCount() > 0) {
@@ -202,7 +206,7 @@ class AdminPayment
                     $dom = (string)$item['domain_name'];
                     $amt = (float)$item['price'];
 
-                    if ($cat === 'hosting' || $cat === 'cloud_hosting' || $amt >= 500000) {
+                    if ($cat === 'hosting' || $cat === 'cloud_hosting') {
                         $planId = 2; // Default Bisnis Pro
                         if ($amt < 1000000) $planId = 1; // Starter
                         if ($amt >= 1800000) $planId = 3; // Enterprise

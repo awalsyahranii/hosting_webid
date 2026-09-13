@@ -66,11 +66,38 @@ function calculateDiscount($db, $couponCode, $subtotal) {
     return 0.0;
 }
 
-// 1. DIRECT PACKAGE ORDER (HOSTING OR GOOGLE ADS)
+// 1. DIRECT PACKAGE ORDER (HOSTING, GOOGLE ADS, SEO PBN, WEBSITE, ETC.)
 if ($packageName) {
     $lowerPkg = strtolower($packageName);
     $isGoogleAds = (strpos($lowerPkg, 'ads') !== false || strpos($lowerPkg, 'google') !== false || strpos($lowerPkg, 'iklan') !== false);
-    $serviceCategory = $isGoogleAds ? 'google_ads' : 'hosting';
+    $isSeoPbn = (strpos($lowerPkg, 'pbn') !== false || strpos($lowerPkg, 'seo') !== false);
+    $isWebsite = (strpos($lowerPkg, 'website') !== false || strpos($lowerPkg, 'jasa pembuatan') !== false || strpos($lowerPkg, 'pembuatan web') !== false || strpos($lowerPkg, 'toko online') !== false || strpos($lowerPkg, 'landing') !== false);
+
+    if ($isGoogleAds) {
+        $serviceCategory = 'google_ads';
+        if (strpos($lowerPkg, '14') !== false) {
+            $billingPeriod = '14_days';
+        } elseif (strpos($lowerPkg, '20') !== false) {
+            $billingPeriod = '20_days';
+        } elseif (strpos($lowerPkg, '30') !== false) {
+            $billingPeriod = '30_days';
+        } else {
+            $billingPeriod = '30_days';
+        }
+    } elseif ($isSeoPbn) {
+        $serviceCategory = 'seo_pbn';
+        $billingPeriod = 'yearly';
+    } elseif ($isWebsite) {
+        $serviceCategory = 'website';
+        $billingPeriod = 'yearly';
+    } else {
+        $serviceCategory = 'hosting';
+        $billingPeriod = 'yearly';
+    }
+
+    if (!empty($input['billing_period'])) {
+        $billingPeriod = trim($input['billing_period']);
+    }
 
     // Prioritize exact price sent from frontend checkout
     if ($itemPrice !== null && $itemPrice > 0) {
@@ -86,6 +113,12 @@ if ($packageName) {
             elseif (strpos($lowerPkg, 'pemula 20') !== false) $basePrice = 1000000;
             elseif (strpos($lowerPkg, 'pemula 14') !== false) $basePrice = 700000;
             else $basePrice = 1000000;
+        } elseif ($isSeoPbn) {
+            if (strpos($lowerPkg, '3') !== false) $basePrice = 2000000;
+            elseif (strpos($lowerPkg, '2') !== false) $basePrice = 1200000;
+            else $basePrice = 650000;
+        } elseif ($isWebsite) {
+            $basePrice = 750000;
         } else {
             if (strpos($lowerPkg, 'starter') !== false) $basePrice = 750000;
             elseif (strpos($lowerPkg, 'elite') !== false || strpos($lowerPkg, 'enterprise') !== false) $basePrice = 2000000;
@@ -119,7 +152,6 @@ if ($packageName) {
         $orderId = (int)$db->lastInsertId();
 
         $itemTitle = ($domainName && $domainName !== $packageName) ? "{$packageName} ({$domainName})" : $packageName;
-        $billingPeriod = $isGoogleAds ? 'custom' : 'yearly';
 
         $insItem = $db->prepare('
             INSERT INTO order_items (order_id, domain_id, domain_name, service_category, billing_period, service_status, price, created_at)

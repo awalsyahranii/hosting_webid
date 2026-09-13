@@ -541,11 +541,9 @@ class Order
     {
         $this->updateExpiredServices();
 
-
         $stmt = $this->db->prepare("
             SELECT
                 COUNT(*) AS total_services,
-
 
                 SUM(
                     CASE
@@ -555,15 +553,45 @@ class Order
                     END
                 ) AS total_website,
 
-
                 SUM(
                     CASE
-                        WHEN service_category = 'iklan'
+                        WHEN service_category IN ('google_ads', 'google-ads', 'iklan', 'ads')
                         THEN 1
                         ELSE 0
                     END
                 ) AS total_iklan,
 
+                SUM(
+                    CASE
+                        WHEN service_category IN ('google_ads', 'google-ads', 'iklan', 'ads')
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS total_google_ads,
+
+                SUM(
+                    CASE
+                        WHEN service_category IN ('hosting', 'cloud_hosting')
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS total_hosting,
+
+                SUM(
+                    CASE
+                        WHEN service_category = 'domain'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS total_domain,
+
+                SUM(
+                    CASE
+                        WHEN service_category IN ('seo_pbn', 'seo-pbn', 'seo', 'pbn')
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS total_seo_pbn,
 
                 SUM(
                     CASE
@@ -573,7 +601,6 @@ class Order
                     END
                 ) AS total_active,
 
-
                 SUM(
                     CASE
                         WHEN service_status = 'expired'
@@ -582,7 +609,6 @@ class Order
                     END
                 ) AS total_expired,
 
-
                 SUM(
                     CASE
                         WHEN service_status = 'cancelled'
@@ -590,7 +616,6 @@ class Order
                         ELSE 0
                     END
                 ) AS total_cancelled
-
 
             FROM order_items
         ");
@@ -824,15 +849,21 @@ class Order
          * -------------------------------------------------
          */
         if (!empty($category)) {
-
-            $sql .= "
-                AND oi.service_category =
-                    :service_category
-            ";
-
-            $params[
-                ':service_category'
-            ] = $category;
+            $catLower = strtolower(trim($category));
+            if (in_array($catLower, ['google_ads', 'google-ads', 'iklan', 'ads'])) {
+                $sql .= " AND (oi.service_category IN ('google_ads', 'google-ads', 'iklan', 'ads') OR oi.domain_name LIKE '%Google Ads%' OR oi.domain_name LIKE '%Iklan%') ";
+            } elseif (in_array($catLower, ['seo_pbn', 'seo-pbn', 'seo', 'pbn'])) {
+                $sql .= " AND (oi.service_category IN ('seo_pbn', 'seo-pbn', 'seo', 'pbn') OR oi.domain_name LIKE '%SEO%' OR oi.domain_name LIKE '%PBN%') ";
+            } elseif (in_array($catLower, ['website', 'web'])) {
+                $sql .= " AND (oi.service_category IN ('website', 'web') OR oi.domain_name LIKE '%Website%' OR oi.domain_name LIKE '%Jasa%') ";
+            } elseif (in_array($catLower, ['hosting', 'cloud_hosting'])) {
+                $sql .= " AND (oi.service_category IN ('hosting', 'cloud_hosting') OR oi.domain_name LIKE '%Hosting%') ";
+            } elseif ($catLower === 'domain') {
+                $sql .= " AND oi.service_category = 'domain' ";
+            } else {
+                $sql .= " AND oi.service_category = :service_category ";
+                $params[':service_category'] = $category;
+            }
         }
 
 

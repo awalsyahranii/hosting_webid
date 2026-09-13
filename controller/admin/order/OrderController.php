@@ -87,8 +87,8 @@ public function getServiceReport(
     if (
         !empty($category) &&
         !in_array(
-            $category,
-            ['website', 'iklan'],
+            strtolower(trim($category)),
+            ['website', 'web', 'iklan', 'ads', 'google_ads', 'google-ads', 'hosting', 'domain', 'seo_pbn', 'seo-pbn'],
             true
         )
     ) {

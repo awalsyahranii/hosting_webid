@@ -66,18 +66,37 @@ function calculateDiscount($db, $couponCode, $subtotal) {
     return 0.0;
 }
 
-// 1. DIRECT HOSTING PACKAGE ORDER
+// 1. DIRECT PACKAGE ORDER (HOSTING OR GOOGLE ADS)
 if ($packageName) {
-    $basePrice = 1500000;
     $lowerPkg = strtolower($packageName);
-    if (strpos($lowerPkg, 'starter') !== false) $basePrice = 750000;
-    elseif (strpos($lowerPkg, 'bisnis') !== false || strpos($lowerPkg, 'business') !== false) $basePrice = 1500000;
-    elseif (strpos($lowerPkg, 'elite') !== false || strpos($lowerPkg, 'enterprise') !== false) $basePrice = 2000000;
+    $isGoogleAds = (strpos($lowerPkg, 'ads') !== false || strpos($lowerPkg, 'google') !== false || strpos($lowerPkg, 'iklan') !== false);
+    $serviceCategory = $isGoogleAds ? 'google_ads' : 'hosting';
+
+    // Prioritize exact price sent from frontend checkout
+    if ($itemPrice !== null && $itemPrice > 0) {
+        $basePrice = $itemPrice;
+    } else {
+        // Fallback pricing
+        if ($isGoogleAds) {
+            if (strpos($lowerPkg, 'bisnis 30') !== false) $basePrice = 3000000;
+            elseif (strpos($lowerPkg, 'bisnis 20') !== false) $basePrice = 2000000;
+            elseif (strpos($lowerPkg, 'bisnis 15') !== false) $basePrice = 1500000;
+            elseif (strpos($lowerPkg, 'bisnis 10') !== false) $basePrice = 1000000;
+            elseif (strpos($lowerPkg, 'pemula 30') !== false) $basePrice = 1500000;
+            elseif (strpos($lowerPkg, 'pemula 20') !== false) $basePrice = 1000000;
+            elseif (strpos($lowerPkg, 'pemula 14') !== false) $basePrice = 700000;
+            else $basePrice = 1000000;
+        } else {
+            if (strpos($lowerPkg, 'starter') !== false) $basePrice = 750000;
+            elseif (strpos($lowerPkg, 'elite') !== false || strpos($lowerPkg, 'enterprise') !== false) $basePrice = 2000000;
+            else $basePrice = 1500000;
+        }
+    }
 
     $subtotal = $basePrice * $durationYears;
     $discount = calculateDiscount($db, $couponCode, $subtotal);
     $afterDiscount = max(0, $subtotal - $discount);
-    $ppn = $afterDiscount * 0.11;
+    $ppn = round($afterDiscount * 0.11);
     $total = $afterDiscount + $ppn;
 
     $orderNumber = 'ORD-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
@@ -99,14 +118,18 @@ if ($packageName) {
         ]);
         $orderId = (int)$db->lastInsertId();
 
-        $itemTitle = $domainName ? "{$packageName} ({$domainName})" : $packageName;
+        $itemTitle = ($domainName && $domainName !== $packageName) ? "{$packageName} ({$domainName})" : $packageName;
+        $billingPeriod = $isGoogleAds ? 'custom' : 'yearly';
+
         $insItem = $db->prepare('
             INSERT INTO order_items (order_id, domain_id, domain_name, service_category, billing_period, service_status, price, created_at)
-            VALUES (:order_id, 0, :domain_name, "hosting", "yearly", "pending", :price, NOW())
+            VALUES (:order_id, 0, :domain_name, :service_category, :billing_period, "pending", :price, NOW())
         ');
         $insItem->execute([
             ':order_id' => $orderId,
             ':domain_name' => $itemTitle,
+            ':service_category' => $serviceCategory,
+            ':billing_period' => $billingPeriod,
             ':price' => $subtotal
         ]);
 
@@ -127,7 +150,7 @@ if ($packageName) {
         echo json_encode([
             'status' => 'success',
             'code' => 201,
-            'message' => 'Order hosting berhasil dibuat',
+            'message' => 'Order ' . $serviceCategory . ' berhasil dibuat',
             'data' => [
                 'order_id' => $orderId,
                 'order_number' => $orderNumber,
@@ -145,7 +168,7 @@ if ($packageName) {
     } catch (Throwable $e) {
         if ($db->inTransaction()) $db->rollBack();
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'code' => 500, 'message' => 'Gagal membuat order hosting: ' . $e->getMessage()]);
+        echo json_encode(['status' => 'error', 'code' => 500, 'message' => 'Gagal membuat order: ' . $e->getMessage()]);
         exit;
     }
 }
@@ -153,7 +176,7 @@ if ($packageName) {
 // 2. DIRECT DOMAIN ORDER (FROM DOMAIN SEARCH)
 if ($domainName && !$packageName) {
     $basePrice = 150000;
-    if ($itemPrice && $itemPrice > 0) {
+    if ($itemPrice !== null && $itemPrice > 0) {
         $basePrice = $itemPrice;
     } else {
         $lower = strtolower($domainName);
@@ -169,7 +192,7 @@ if ($domainName && !$packageName) {
     $subtotal = $basePrice * $durationYears;
     $discount = calculateDiscount($db, $couponCode, $subtotal);
     $afterDiscount = max(0, $subtotal - $discount);
-    $ppn = $afterDiscount * 0.11;
+    $ppn = round($afterDiscount * 0.11);
     $total = $afterDiscount + $ppn;
 
     $orderNumber = 'ORD-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));

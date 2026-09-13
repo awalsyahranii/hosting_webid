@@ -813,3 +813,15 @@
 [2026-09-13 09:48:11] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
 [2026-09-13 09:48:11] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
 [2026-09-13 09:48:11] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":4,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-08-24 10:42:17","updated_at":"2026-08-24 11:17:58"},"role":"user"}}
+[2026-09-13 10:58:07] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-13 10:58:07] Raw JSON input | Data: {"raw":"{\"identifier\":\"awalsyahrani2006@gmail.com\",\"password\":\"qwerty1234\"}"}
+[2026-09-13 10:58:07] Parsed credentials | Data: {"identifier":"awalsyahrani2006@gmail.com","password_provided":"yes"}
+[2026-09-13 10:58:07] Login result | Data: {"status":"error","code":401,"message":"Username\/Email tidak ditemukan"}
+[2026-09-13 11:03:57] Login API requested | Data: {"method":"POST","origin":"","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-13 11:03:57] Raw JSON input | Data: {"raw":"{\"identifier\":\"awalsyahrani2006@gmail.com\",\"password\":\"qwerty1234\"}"}
+[2026-09-13 11:03:57] Parsed credentials | Data: {"identifier":"awalsyahrani2006@gmail.com","password_provided":"yes"}
+[2026-09-13 11:03:57] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":8,"username":"awal","email":"awalsyahrani2006@gmail.com","role":"user","created_at":"2026-09-13 19:03:43","updated_at":"2026-09-13 19:03:43"},"role":"user"}}
+[2026-09-13 11:06:00] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-09-13 11:06:00] Raw JSON input | Data: {"raw":"{\"identifier\":\"awalsyahrani2006@gmail.com\",\"password\":\"qwerty1234\"}"}
+[2026-09-13 11:06:00] Parsed credentials | Data: {"identifier":"awalsyahrani2006@gmail.com","password_provided":"yes"}
+[2026-09-13 11:06:00] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":8,"username":"awal","email":"awalsyahrani2006@gmail.com","role":"user","created_at":"2026-09-13 19:03:43","updated_at":"2026-09-13 19:03:43"},"role":"user"}}

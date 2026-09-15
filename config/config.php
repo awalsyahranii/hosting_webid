@@ -16,7 +16,7 @@ define('SMTP_FROM', 'your-email@gmail.com');
 define('APP_NAME', 'Hosting Web');
 define('APP_URL', 'http://localhost/hosting_web');
 
+require_once __DIR__ . '/cors.php';
+
 // Session
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_init();

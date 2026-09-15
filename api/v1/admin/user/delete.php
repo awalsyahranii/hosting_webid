@@ -1,50 +1,21 @@
 <?php
 // api/v1/admin/user/delete.php
 
-header('Content-Type: application/json; charset=UTF-8');
-
-header(
-    'Access-Control-Allow-Origin: http://localhost:3000'
-);
-
-header(
-    'Access-Control-Allow-Credentials: true'
-);
-
-header(
-    'Access-Control-Allow-Methods: DELETE, POST, OPTIONS'
-);
-
-header(
-    'Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With'
-);
-
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-
+require_once __DIR__ . '/../../../../config/cors.php';
+cors_init(['DELETE', 'POST', 'OPTIONS']);
+session_init();
 
 if (
     $_SERVER['REQUEST_METHOD'] !== 'DELETE' &&
     $_SERVER['REQUEST_METHOD'] !== 'POST'
 ) {
-
     http_response_code(405);
-
     echo json_encode([
         'status' => 'error',
         'code' => 405,
         'message' => 'Method not allowed'
     ]);
-
     exit;
-}
-
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
 }
 
 

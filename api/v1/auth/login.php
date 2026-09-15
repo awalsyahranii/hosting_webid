@@ -16,35 +16,9 @@ log_debug("Login API requested", [
     'uri' => $_SERVER['REQUEST_URI'] ?? ''
 ]);
 
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$allowed_origins = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000'
-];
-if (in_array($origin, $allowed_origins)) {
-    header("Access-Control-Allow-Origin: $origin");
-} else {
-    header("Access-Control-Allow-Origin: http://localhost:3000");
-}
-
-header('Access-Control-Allow-Credentials: true');
-
-header(
-    'Access-Control-Allow-Methods: POST, OPTIONS'
-);
-
-header(
-    'Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With'
-);
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../../../config/cors.php';
+cors_init(['POST', 'OPTIONS']);
+session_init();
 session_regenerate_id(true);
 
 require_once __DIR__ . '/../../../controller/users/user/AuthController.php';

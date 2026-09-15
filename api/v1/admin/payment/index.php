@@ -34,6 +34,7 @@ try {
     http_response_code($result['code'] ?? 500);
     echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 } catch (Throwable $e) {
+    error_log('Admin Payment API Error: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['status' => 'error', 'code' => 500, 'message' => 'Terjadi kesalahan server']);
+    echo json_encode(['status' => 'error', 'code' => 500, 'message' => 'Terjadi kesalahan server', 'error' => $e->getMessage()]);
 }

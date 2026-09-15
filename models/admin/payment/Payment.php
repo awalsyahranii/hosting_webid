@@ -33,8 +33,19 @@ class AdminPayment
             INNER JOIN orders o ON o.id = p.order_id
             INNER JOIN users u ON u.id = o.user_id
             LEFT JOIN order_items oi ON oi.order_id = o.id
-            WHERE p.status = 'paid' OR p.confirmation_requested_at IS NOT NULL
-            GROUP BY p.id
+            GROUP BY 
+                p.id,
+                p.payment_number,
+                p.order_id,
+                o.order_number,
+                u.username,
+                p.amount,
+                p.payment_method,
+                p.status,
+                p.paid_at,
+                p.confirmation_requested_at,
+                p.created_at,
+                u.email
             ORDER BY p.id DESC
         ");
 

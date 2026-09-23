@@ -1,30 +1,40 @@
 <?php
 // api/v1/admin/article/create.php
 
-header('Content-Type: application/json; charset=UTF-8');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+require_once __DIR__ . '/../../../../config/cors.php';
+cors_init(['POST', 'OPTIONS']);
+session_init();
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['status' => 'error', 'code' => 405, 'message' => 'Method not allowed']);
     exit;
 }
 
-require_once __DIR__ . '/../../../../controller/users/user/AuthController.php';
-require_once __DIR__ . '/../../../../controller/admin/article/ArticleController.php';
+if (($_SESSION['logged_in'] ?? false) !== true) {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'code' => 401, 'message' => 'Belum login']);
+    exit;
+}
 
-$session = (new AuthController())->checkSession();
-$userRole = strtolower($session['data']['role'] ?? '');
+$userRole = strtolower($_SESSION['role'] ?? '');
 if (!in_array($userRole, ['admin', 'super_admin', 'superadmin'])) {
     http_response_code(403);
     echo json_encode(['status' => 'error', 'code' => 403, 'message' => 'Akses ditolak: Hanya untuk admin']);
     exit;
 }
 
-$input = json_decode(file_get_contents('php://input'), true);
+require_once __DIR__ . '/../../../../controller/admin/article/ArticleController.php';
+
+$raw = file_get_contents('php://input');
+$input = json_decode($raw, true);
 if (!is_array($input)) {
     $input = $_POST;
+}
+
+// Auto author from session if empty
+if (empty($input['author']) && !empty($_SESSION['username'])) {
+    $input['author'] = $_SESSION['username'];
 }
 
 $controller = new AdminArticleController();

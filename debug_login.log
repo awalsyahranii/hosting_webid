@@ -946,3 +946,15 @@
 [2026-09-23 16:43:10] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
 [2026-09-23 16:43:10] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
 [2026-09-23 16:43:10] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":15,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-09-23 21:55:39","updated_at":"2026-09-23 21:55:39"},"role":"user"}}
+[2026-10-02 00:41:53] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-10-02 00:41:53] Raw JSON input | Data: {"raw":"{\"identifier\":\"irwantomultimedia@gmail.com\",\"password\":\"polimedia94\"}"}
+[2026-10-02 00:41:53] Parsed credentials | Data: {"identifier":"irwantomultimedia@gmail.com","password_provided":"yes"}
+[2026-10-02 00:41:53] Login result | Data: {"status":"error","code":401,"message":"Password salah"}
+[2026-10-02 00:42:40] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-10-02 00:42:40] Raw JSON input | Data: {"raw":"{\"identifier\":\"irwantomultimedia@gmail.com\",\"password\":\"polimedia@94\"}"}
+[2026-10-02 00:42:40] Parsed credentials | Data: {"identifier":"irwantomultimedia@gmail.com","password_provided":"yes"}
+[2026-10-02 00:42:40] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":7,"username":"irwanto","email":"irwantomultimedia@gmail.com","role":"super_admin","created_at":"2026-09-12 05:52:25","updated_at":"2026-09-15 10:54:41"},"role":"super_admin"}}
+[2026-10-02 01:01:21] Login API requested | Data: {"method":"POST","origin":"http:\/\/localhost:3000","uri":"\/hosting_webid\/api\/v1\/auth\/login.php"}
+[2026-10-02 01:01:21] Raw JSON input | Data: {"raw":"{\"identifier\":\"testuser@example.com\",\"password\":\"passwordbaru123\"}"}
+[2026-10-02 01:01:21] Parsed credentials | Data: {"identifier":"testuser@example.com","password_provided":"yes"}
+[2026-10-02 01:01:21] Login result | Data: {"status":"success","code":200,"message":"Login berhasil","data":{"user":{"id":15,"username":"testuser","email":"testuser@example.com","role":"user","created_at":"2026-09-23 21:55:39","updated_at":"2026-09-23 21:55:39"},"role":"user"}}

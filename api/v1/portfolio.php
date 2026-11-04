@@ -10,10 +10,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-$dbHost = 'localhost';
-$dbName = 'hosting_web';
-$dbUser = 'root';
-$dbPass = '';
+if (file_exists(__DIR__ . '/../../config/config.php')) {
+    require_once __DIR__ . '/../../config/config.php';
+}
+
+$dbHost = defined('DB_HOST') ? DB_HOST : 'localhost';
+$dbName = defined('DB_NAME') ? DB_NAME : 'hosting_web';
+$dbUser = defined('DB_USER') ? DB_USER : 'root';
+$dbPass = defined('DB_PASS') ? DB_PASS : '';
 
 try {
     $pdo = new PDO("mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4", $dbUser, $dbPass, [
